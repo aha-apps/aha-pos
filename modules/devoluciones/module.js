@@ -159,6 +159,7 @@
       var html =
         '<div x-data="{' +
         'paso: 1,' +
+        'modo: \'lista\',' +
         'busqueda: \'\',' +
         'ventasFiltradas: [],' +
         'ventaSel: null,' +
@@ -211,7 +212,7 @@
         '    }' +
         '    var ok = await window.MODULES.devoluciones.guardarDevolucion({ ventaId: this.ventaSel.id, items: items, motivo: this.motivo, reembolso: this.reembolso });' +
         '    if (ok) {' +
-        '      this.paso = 1; this.ventaSel = null; this.itemsSel = []; this.cantidades = {};' +
+        '      this.modo = \'lista\'; this.paso = 1; this.ventaSel = null; this.itemsSel = []; this.cantidades = {};' +
         '      this.busqueda = \'\'; this.motivo = \'defecto\'; this.reembolso = \'parcial\';' +
         '      this.devoluciones = window.MODULES.devoluciones.devoluciones;' +
         '    }' +
@@ -219,7 +220,7 @@
         '  finally { this.guardando = false; }' +
         '},' +
         'cancelar: function() {' +
-        '  this.paso = 1; this.ventaSel = null; this.itemsSel = []; this.cantidades = {};' +
+        '  this.modo = \'lista\'; this.paso = 1; this.ventaSel = null; this.itemsSel = []; this.cantidades = {};' +
         '  this.busqueda = \'\'; this.motivo = \'defecto\'; this.reembolso = \'parcial\';' +
         '},' +
         'fmtDate: function(d) { if (!d) return \'\'; var dt = d instanceof Date ? d : new Date(d); if (isNaN(dt.getTime())) return \'\'; return dt.toLocaleDateString(\'es-MX\', { day: \'numeric\', month: \'short\', year: \'numeric\' }).replace(/\\./g, \'\'); },' +
@@ -227,15 +228,15 @@
         'motivoLabel: function(m) { var map = { defecto: \'Defecto\', \'cambio de opinion\': \'Cambio de opini\u00f3n\', error: \'Error del vendedor\', otro: \'Otro\' }; return map[m] || m || \'Otro\'; }' +
         '}" class="space-y-6">' +
 
-        '<!-- Toolbar -->' +
-        '<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3" x-show="paso === 1">' +
+        '<!-- Toolbar (solo visible en modo lista) -->' +
+        '<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3" x-show="modo === \'lista\'">' +
         '<h2 class="text-xl font-bold">Devoluciones</h2>' +
-        '<button class="btn btn-primary" @click="paso = 1; ventaSel = null; itemsSel = []; cantidades = {}; busqueda = \'\'">' +
+        '<button class="btn btn-primary" @click="modo = \'nuevo\'; paso = 1; ventaSel = null; itemsSel = []; cantidades = {}; busqueda = \'\'">' +
         '<i class="bi bi-plus-lg"></i> Nueva Devoluci\u00f3n</button>' +
         '</div>' +
 
         '<!-- Step indicator -->' +
-        '<div x-show="paso > 1" x-cloak class="flex items-center gap-2 text-sm mb-4">' +
+        '<div x-show="modo === \'nuevo\'" x-cloak class="flex items-center gap-2 text-sm mb-4">' +
         '<template x-for="(s, i) in [\'Venta\', \'Productos\', \'Detalles\', \'Confirmar\']" :key="i">' +
         '<div class="flex items-center gap-2">' +
         '<div :class="{\'bg-primary text-primary-content\': paso >= i+1, \'bg-base-300 text-base-content/40\': paso < i+1}" class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" x-text="i+1"></div>' +
@@ -244,6 +245,11 @@
         '</div>' +
         '</template>' +
         '</div>' +
+
+        '<!-- Wrapper wizard (solo visible en modo nuevo) -->' +
+        '<div x-show="modo === \'nuevo\'">' +
+        '<!-- Boton volver a lista -->' +
+        '<button class="btn btn-ghost btn-sm gap-1 mb-2" @click="cancelar"><i class="bi bi-arrow-left"></i> Volver a devoluciones</button>' +
 
         '<!-- Step 1: Seleccionar Venta -->' +
         '<div x-show="paso === 1">' +
@@ -391,9 +397,10 @@
         '</div>' +
         '</div>' +
         '</div>' +
+        '</div>' + // cierra wizard wrapper
 
         '<!-- Historial de devoluciones -->' +
-        '<div x-show="paso === 1">' +
+        '<div x-show="modo === \'lista\'">' +
         devRows +
         '</div>' +
 

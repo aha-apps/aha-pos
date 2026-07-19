@@ -236,15 +236,59 @@
       this.render();
     },
 
+    _escAttr: function (str) {
+      if (typeof str !== 'string') return '';
+      return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    },
+
     cerrarCorte: async function () {
       if (!this.corteActual || this.guardando) return;
-      var ok = await UI.confirm(
-        'Total esperado: ' + UI.formatCurrency(this.totalEsperado) + '\n' +
-        'Total contado: ' + UI.formatCurrency(this.totalReal) + '\n' +
-        'Diferencia: ' + UI.formatCurrency(this.diferencia) + '\n\n' +
-        '¿Cerrar el corte?',
-        'Confirmar Cierre'
-      );
+      var totalVentas = this.ventasHoy.reduce(function (s, v) { return s + (v.total || 0); }, 0);
+      var totalGastos = this.gastos.reduce(function (s, g) { return s + (g.monto || 0); }, 0);
+      var difColor = this.diferencia >= 0 ? 'text-success' : 'text-error';
+      var difSigno = this.diferencia >= 0 ? '+' : '';
+      var gastosHtml = '';
+      for (var i = 0; i < this.gastos.length; i++) {
+        var g = this.gastos[i];
+        gastosHtml += '<div class="flex justify-between text-xs py-1"><span>' + this._escAttr(g.concepto) + '</span><span class="tabular-nums text-error">-$' + Number(g.monto).toFixed(2) + '</span></div>';
+      }
+      var html = '' +
+        '<div class="space-y-3">' +
+          '<div class="bg-base-200 rounded-xl p-4 space-y-2">' +
+            '<div class="flex justify-between text-sm"><span class="text-base-content/50">Ventas del d\u00eda</span><span class="font-semibold tabular-nums text-success">$' + totalVentas.toFixed(2) + '</span></div>' +
+            '<div class="flex justify-between text-sm"><span class="text-base-content/50">Total gastos</span><span class="font-semibold tabular-nums text-error">-$' + totalGastos.toFixed(2) + '</span></div>' +
+            '<div class="border-t border-base-300 pt-2 flex justify-between text-sm font-bold"><span>Total esperado</span><span class="tabular-nums">$' + this.totalEsperado.toFixed(2) + '</span></div>' +
+          '</div>' +
+          '<div class="bg-base-200 rounded-xl p-4 space-y-2">' +
+            '<div class="flex justify-between text-sm"><span class="text-base-content/50">Total contado (arqueo)</span><span class="font-semibold tabular-nums">$' + this.totalReal.toFixed(2) + '</span></div>' +
+            '<div class="border-t border-base-300 pt-2 flex justify-between text-base font-bold">' +
+              '<span>Diferencia</span>' +
+              '<span class="tabular-nums ' + difColor + '">' + difSigno + '$' + Math.abs(this.diferencia).toFixed(2) + '</span>' +
+            '</div>' +
+          '</div>' +
+          (gastosHtml ? '<div class="bg-base-200 rounded-xl p-4"><div class="text-xs font-semibold text-base-content/50 uppercase tracking-wider mb-2">Gastos del turno</div>' + gastosHtml + '</div>' : '') +
+          '<div class="text-xs text-center text-base-content/40 pt-1">El corte se cerrar\u00e1 y no podr\u00e1 modificarse.</div>' +
+        '</div>';
+      var ok = await new Promise(function (resolve) {
+        var overlay = document.createElement('div');
+        overlay.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4';
+        var dialog = document.createElement('div');
+        dialog.className = 'modal-box max-w-md rounded-2xl';
+        dialog.innerHTML =
+          '<h3 class="font-bold text-lg mb-2">Resumen de cierre</h3>' +
+          html +
+          '<div class="modal-action mt-4">' +
+          '<button class="btn btn-ghost" data-cancel>Cancelar</button>' +
+          '<button class="btn btn-primary" data-confirm>' +
+          '<i class="bi bi-lock-fill"></i> Cerrar Corte</button>' +
+          '</div>';
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+        function cleanup() { overlay.remove(); }
+        dialog.querySelector('[data-cancel]').onclick = function () { cleanup(); resolve(false); };
+        dialog.querySelector('[data-confirm]').onclick = function () { cleanup(); resolve(true); };
+        overlay.onclick = function (e) { if (e.target === overlay) { cleanup(); resolve(false); } };
+      });
       if (!ok) return;
       this.guardando = true;
       try {

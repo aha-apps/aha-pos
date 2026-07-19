@@ -18,7 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
-    html { font-family: 'Inter', system-ui, sans-serif; }
+    html { font-family: 'Inter', system-ui, sans-serif; scroll-behavior: smooth; }
     [x-cloak] { display: none !important; }
 
     .sk-el { background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 0.5rem; }
@@ -205,6 +205,11 @@
     <i class="bi bi-plus-lg"></i>
   </button>
 
+  <!-- Scroll-to-top -->
+  <button x-data="{ show: false }" x-init="window.addEventListener('scroll', function() { show = window.scrollY > 400; })" x-show="show" x-cloak @click="window.scrollTo({ top: 0, behavior: 'smooth' })" class="fixed bottom-24 right-4 z-40 w-10 h-10 rounded-xl bg-base-100 border border-base-200 shadow-lg flex items-center justify-center text-base-content/50 hover:text-base-content transition-all cursor-pointer">
+    <i class="bi bi-arrow-up"></i>
+  </button>
+
   <!-- Bottom Nav (mobile) -->
   <nav class="bottom-nav" id="bottom-nav">
     <button class="bottom-nav-item" :class="{ 'active': $store.app.moduloActual === 'ventas' }" @click="window.appRouter?.navigate('ventas')">
@@ -298,6 +303,34 @@
         });
       });
     }
+  </script>
+
+  <!-- Global Keyboard Shortcuts -->
+  <script>
+    document.addEventListener('keydown', function (e) {
+      var t = e.target;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'n' || e.key === 'N')) {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('fab-click'));
+        return;
+      }
+      var MODS = { F1: 'ventas', F2: 'productos', F3: 'corte', F4: 'devoluciones', F5: 'reportes' };
+      if (MODS[e.key] && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        e.preventDefault();
+        if (window.appRouter) window.appRouter.navigate(MODS[e.key]);
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        if (window.toggleSearch) window.toggleSearch();
+        return;
+      }
+      if (e.key === 'Escape') {
+        var s = Alpine.store('app');
+        if (s && s.sidebarOpen) { s.sidebarOpen = false; e.preventDefault(); }
+      }
+    });
   </script>
 </body>
 </html>

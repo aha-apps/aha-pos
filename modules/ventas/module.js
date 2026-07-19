@@ -40,20 +40,33 @@
             '</template>' +
           '</div>' +
           '<div x-show="!cargando && productosFiltrados.length === 0" class="empty-state flex-1 flex flex-col items-center justify-center py-12">' +
+            '<template x-if="!searchQuery">' +
             '<div class="empty-state-icon bg-base-200"><i class="bi bi-box-seam text-3xl text-base-content/30"></i></div>' +
             '<div class="empty-state-title">Ning\u00fan producto disponible</div>' +
             '<div class="empty-state-desc">Agrega productos en el m\u00f3dulo de inventario primero</div>' +
+            '</template>' +
+            '<template x-if="searchQuery">' +
+            '<div class="empty-state-icon bg-warning/10 text-warning"><i class="bi bi-search text-3xl"></i></div>' +
+            '<div class="empty-state-title">Sin resultados</div>' +
+            '<div class="empty-state-desc">Ning\u00fan producto coincide con <span class="font-medium" x-text="\'\\u201C\' + searchQuery + \'\\u201D\'"></span></div>' +
+            '<button @click="searchQuery=\'\';buscarProductos()" class="btn btn-ghost btn-xs gap-1 mt-2"><i class="bi bi-x-lg"></i> Limpiar b\u00fasqueda</button>' +
+            '</template>' +
           '</div>' +
           '<div x-show="!cargando" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 overflow-y-auto pb-4 pr-1 ventas-productos-grid" style="max-height:calc(100vh - 280px)">' +
             '<template x-for="(prod, idx) in productosFiltrados" :key="prod.id">' +
-              '<div @click="agregarAlCarrito(prod)" class="card bg-base-100 border border-base-200 hover:border-primary/40 hover:shadow-md hover:-translate-y-0.5 cursor-pointer transition-all duration-200 rounded-2xl p-3 relative overflow-hidden grupo-producto">' +
-                '<div class="w-full aspect-square rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center mb-2 overflow-hidden">' +
+              '<div @click="agregarAlCarrito(prod)" ' +
+                ':class="ultimoAgregado === prod.id ? \'ring-2 ring-primary scale-[0.97]\' : \'\'" ' +
+                'class="card bg-base-100 border border-base-200 hover:border-primary/40 hover:shadow-md hover:-translate-y-0.5 cursor-pointer transition-all duration-200 rounded-2xl p-3 relative overflow-hidden grupo-producto">' +
+                '<div class="w-full aspect-square rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center mb-2 overflow-hidden relative">' +
                   '<template x-if="prod.imagen">' +
                     '<img :src="prod.imagen" :alt="prod.nombre" class="w-full h-full object-cover">' +
                   '</template>' +
                   '<template x-if="!prod.imagen">' +
                     '<i class="bi bi-box text-3xl text-primary/30"></i>' +
                   '</template>' +
+                  '<div x-show="ultimoAgregado === prod.id" class="absolute inset-0 bg-primary/20 rounded-xl flex items-center justify-center">' +
+                    '<i class="bi bi-check-circle-fill text-white text-2xl drop-shadow-lg"></i>' +
+                  '</div>' +
                 '</div>' +
                 '<div class="text-xs font-semibold truncate leading-tight mb-1" x-text="prod.nombre"></div>' +
                 '<div class="flex items-center justify-between">' +
@@ -128,15 +141,17 @@
           '<div class="absolute inset-0 bg-base-300/60 backdrop-blur-sm"></div>' +
           '<div class="relative bg-base-100 rounded-2xl shadow-2xl border border-base-200 w-full max-w-sm overflow-hidden">' +
             '<div class="px-5 py-4 border-b border-base-200 flex items-center justify-between">' +
-              '<h3 class="font-semibold">Seleccionar m\u00e9todo de pago</h3>' +
-              '<button @click="showPagoModal = false" class="btn btn-ghost btn-xs btn-circle"><i class="bi bi-x-lg text-sm"></i></button>' +
+              '<h3 class="font-semibold" x-text="showEfectivoForm ? \'Pago en efectivo\' : \'Seleccionar m\u00e9todo de pago\'"></h3>' +
+              '<button @click="showPagoModal = false; showEfectivoForm = false" class="btn btn-ghost btn-xs btn-circle"><i class="bi bi-x-lg text-sm"></i></button>' +
             '</div>' +
-            '<div class="p-5 space-y-3">' +
+
+            '<!-- Step 1: Seleccionar m\u00e9todo -->' +
+            '<div x-show="!showEfectivoForm" class="p-5 space-y-3">' +
               '<div class="text-center mb-4">' +
                 '<div class="text-3xl font-bold text-primary tabular-nums" x-text="\'$ \' + total.toFixed(2)"></div>' +
                 '<div class="text-xs text-base-content/40 mt-1">Total a cobrar</div>' +
               '</div>' +
-              '<button @click="finalizarVenta(\'efectivo\')" class="btn btn-outline btn-lg w-full justify-start gap-4 h-16 rounded-2xl">' +
+              '<button @click="iniciarPagoEfectivo()" class="btn btn-outline btn-lg w-full justify-start gap-4 h-16 rounded-2xl">' +
                 '<i class="bi bi-cash-stack text-2xl text-success"></i>' +
                 '<div class="text-left"><div class="font-semibold">Efectivo</div><div class="text-xs text-base-content/40">Pago en efectivo</div></div>' +
               '</button>' +
@@ -149,7 +164,35 @@
                 '<div class="text-left"><div class="font-semibold">Transferencia</div><div class="text-xs text-base-content/40">Sinpe / Transferencia bancaria</div></div>' +
               '</button>' +
             '</div>' +
-            '<div class="px-5 py-3 border-t border-base-200 text-center">' +
+
+            '<!-- Step 2: Efectivo - monto recibido + cambio -->' +
+            '<div x-show="showEfectivoForm" class="p-5 space-y-4">' +
+              '<div class="text-center mb-2">' +
+                '<div class="text-xs text-base-content/40 mb-1">Total a cobrar</div>' +
+                '<div class="text-3xl font-bold text-primary tabular-nums" x-text="\'$ \' + total.toFixed(2)"></div>' +
+              '</div>' +
+              '<label class="form-control w-full">' +
+                '<span class="label-text font-medium mb-1">Monto recibido</span>' +
+                '<div class="relative">' +
+                  '<span class="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-bold text-base-content/40">$</span>' +
+                  '<input id="modal-efectivo-monto" type="number" x-model="montoRecibido" @input="calcularCambio" step="0.01" min="0" class="input input-bordered w-full pl-8 h-14 text-2xl font-bold text-center tabular-nums" placeholder="0.00">' +
+                '</div>' +
+              '</label>' +
+              '<div x-show="montoRecibido >= total" class="flex items-center justify-between p-3 rounded-xl bg-success/10 border border-success/20">' +
+                '<span class="text-sm font-medium text-base-content/70">Cambio</span>' +
+                '<span class="text-xl font-bold text-success tabular-nums" x-text="\'$ \' + cambio.toFixed(2)"></span>' +
+              '</div>' +
+              '<div x-show="montoRecibido > 0 && montoRecibido < total" class="flex items-center justify-between p-3 rounded-xl bg-error/10 border border-error/20">' +
+                '<span class="text-sm font-medium text-base-content/70">Faltan</span>' +
+                '<span class="text-xl font-bold text-error tabular-nums" x-text="\'$ \' + (total - montoRecibido).toFixed(2)"></span>' +
+              '</div>' +
+              '<button @click="confirmarPagoEfectivo()" class="btn btn-primary w-full h-14 text-base gap-2 btn-spring" :disabled="!montoRecibido || montoRecibido < total">' +
+                '<i class="bi bi-check-lg text-lg"></i> Confirmar pago $ <span x-text="total.toFixed(2)"></span>' +
+              '</button>' +
+              '<button @click="showEfectivoForm = false; montoRecibido = 0; cambio = 0" class="btn btn-ghost btn-sm w-full">Volver a métodos de pago</button>' +
+            '</div>' +
+
+            '<div x-show="!showEfectivoForm" class="px-5 py-3 border-t border-base-200 text-center">' +
               '<button @click="showPagoModal = false" class="btn btn-ghost btn-sm">Cancelar</button>' +
             '</div>' +
           '</div>' +
@@ -174,8 +217,8 @@
     cargarProductos: async function () {
       try {
         var productos = await db.productos.toArray();
-        this.productos = productos.filter(function (p) { return p.stock > 0; });
-        this.searchResults = this.productos.slice();
+        this.productos = productos;
+        this.searchResults = productos;
       } catch (e) {
         console.error('Error cargando productos:', e);
         UI.toast('Error al cargar productos', 'error');
@@ -276,15 +319,27 @@
     },
 
     buscarProductos: function (query) {
+      var self = this;
       if (!query || query.trim() === '') {
         this.searchResults = this.productos.slice();
         return;
       }
       var q = query.toLowerCase().trim();
-      this.searchResults = this.productos.filter(function (p) {
-        return (p.nombre && p.nombre.toLowerCase().indexOf(q) !== -1) ||
-               (p.codigoBarras && p.codigoBarras.toLowerCase().indexOf(q) !== -1);
-      });
+      if (this.productos.length > 500) {
+        this.searchResults = [];
+        db.productos.filter(function (p) {
+          return (p.nombre && p.nombre.toLowerCase().indexOf(q) !== -1) ||
+                 (p.codigoBarras && p.codigoBarras.toLowerCase().indexOf(q) !== -1);
+        }).limit(50).toArray().then(function (results) {
+          self.searchResults = results;
+          self._busquedaCompleta = true;
+        });
+      } else {
+        this.searchResults = this.productos.filter(function (p) {
+          return (p.nombre && p.nombre.toLowerCase().indexOf(q) !== -1) ||
+                 (p.codigoBarras && p.codigoBarras.toLowerCase().indexOf(q) !== -1);
+        }).slice(0, 50);
+      }
     },
 
     finalizarVenta: async function (metodoPago) {
@@ -422,6 +477,11 @@
       procesando: false,
       carritoAbierto: false,
       folioActual: mod ? mod.folioActual : '',
+      ultimoAgregado: null,
+      _timerFeedback: null,
+      showEfectivoForm: false,
+      montoRecibido: 0,
+      cambio: 0,
 
       get productosFiltrados() {
         if (!this.searchQuery || this.searchQuery.trim() === '') {
@@ -476,6 +536,12 @@
           mod.agregarProducto(producto);
           this.carrito = mod.carrito;
         }
+        this.ultimoAgregado = producto.id;
+        var self = this;
+        clearTimeout(this._timerFeedback);
+        this._timerFeedback = setTimeout(function () {
+          self.ultimoAgregado = null;
+        }, 400);
       },
 
       cambiarCantidad: function (idx, delta) {
@@ -509,7 +575,29 @@
           UI.toast('El carrito est\u00e1 vac\u00edo', 'warning');
           return;
         }
+        this.showEfectivoForm = false;
+        this.montoRecibido = 0;
+        this.cambio = 0;
         this.showPagoModal = true;
+      },
+
+      iniciarPagoEfectivo: function () {
+        this.showEfectivoForm = true;
+        this.montoRecibido = 0;
+        this.cambio = 0;
+        var self = this;
+        setTimeout(function () {
+          var input = document.querySelector('#modal-efectivo-monto');
+          if (input) input.focus();
+        }, 100);
+      },
+
+      calcularCambio: function () {
+        this.cambio = Math.max(0, (parseFloat(this.montoRecibido) || 0) - this.total);
+      },
+
+      confirmarPagoEfectivo: function () {
+        this.finalizarVenta('efectivo');
       },
 
       finalizarVenta: async function (metodoPago) {
