@@ -1,0 +1,252 @@
+<div x-data="ventasComponent()" x-init="initVentas()" class="flex flex-col lg:flex-row gap-4 lg:gap-6 h-full">
+
+  <!-- COLUMNA IZQUIERDA: Productos -->
+  <div class="flex-1 flex flex-col min-h-0">
+
+    <!-- Barra de búsqueda -->
+    <div class="flex items-center gap-3 mb-4">
+      <div class="relative flex-1 max-w-md">
+        <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 text-sm"></i>
+        <input type="text" x-model="searchQuery" @input.debounce.200ms="buscarProductos"
+               placeholder="Buscar producto por nombre o código..."
+               class="input input-bordered input-sm w-full pl-9 pr-3 rounded-full">
+        <button x-show="searchQuery" @click="searchQuery=''; buscarProductos()"
+                class="absolute right-2 top-1/2 -translate-y-1/2 btn btn-ghost btn-xs btn-circle text-base-content/40">&times;</button>
+      </div>
+      <span class="text-sm text-base-content/50 hidden sm:inline">
+        <span x-text="productosFiltrados.length"></span> productos
+      </span>
+    </div>
+
+    <!-- Skeleton loading -->
+    <div x-show="cargando" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+      <template x-for="i in 8" :key="i">
+        <div class="sk-el sk-card rounded-2xl"></div>
+      </template>
+    </div>
+
+    <!-- Empty state -->
+    <div x-show="!cargando && productosFiltrados.length === 0"
+         class="empty-state flex-1 flex flex-col items-center justify-center py-12">
+      <div class="empty-state-icon bg-base-200">
+        <i class="bi bi-box-seam text-3xl text-base-content/30"></i>
+      </div>
+      <div class="empty-state-title">Ningún producto disponible</div>
+      <div class="empty-state-desc">Agrega productos en el módulo de inventario primero</div>
+    </div>
+
+    <!-- Grid de productos -->
+    <div x-show="!cargando"
+         class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 overflow-y-auto pb-4 pr-1 ventas-productos-grid"
+         style="max-height:calc(100vh - 280px)">
+      <template x-for="(prod, idx) in productosFiltrados" :key="prod.id">
+        <div @click="agregarAlCarrito(prod)"
+             class="card bg-base-100 border border-base-200 hover:border-primary/40 hover:shadow-md hover:-translate-y-0.5 cursor-pointer transition-all duration-200 rounded-2xl p-3 relative overflow-hidden grupo-producto">
+
+          <!-- Imagen / Icono -->
+          <div class="w-full aspect-square rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center mb-2 overflow-hidden">
+            <template x-if="prod.imagen">
+              <img :src="prod.imagen" :alt="prod.nombre" class="w-full h-full object-cover">
+            </template>
+            <template x-if="!prod.imagen">
+              <i class="bi bi-box text-3xl text-primary/30"></i>
+            </template>
+          </div>
+
+          <!-- Nombre -->
+          <div class="text-xs font-semibold truncate leading-tight mb-1" x-text="prod.nombre"></div>
+
+          <!-- Precio + Stock -->
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-bold text-primary" x-text="formatearPrecio(prod.precio)"></span>
+            <span class="text-[10px] font-medium text-base-content/40">
+              <span x-text="'stock: ' + prod.stock"></span>
+            </span>
+          </div>
+
+          <!-- Badge stock bajo -->
+          <div x-show="prod.stock <= 5 && prod.stock > 0" class="absolute top-2 right-2">
+            <span class="badge badge-warning badge-xs gap-1">
+              <i class="bi bi-exclamation-triangle-fill text-[8px]"></i>
+              <span x-text="prod.stock"></span>
+            </span>
+          </div>
+
+          <!-- Overlay sin stock -->
+          <div x-show="prod.stock === 0"
+               class="absolute inset-0 bg-base-100/70 backdrop-blur-[1px] rounded-2xl flex items-center justify-center">
+            <span class="badge badge-error gap-1 text-[10px]">
+              <i class="bi bi-x-circle-fill"></i> Sin stock
+            </span>
+          </div>
+
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- COLUMNA DERECHA: Carrito -->
+  <div class="lg:w-96 xl:w-[28rem] flex flex-col bg-base-100 border border-base-200 rounded-2xl shadow-sm ventas-cart-panel"
+       :class="carritoAbierto ? 'fixed inset-0 z-50 rounded-none lg:static lg:rounded-2xl' : ''">
+
+    <!-- Header carrito -->
+    <div class="flex items-center justify-between px-4 py-3 border-b border-base-200">
+      <div class="flex items-center gap-2">
+        <i class="bi bi-basket text-lg text-primary"></i>
+        <h3 class="font-semibold text-sm">Carrito</h3>
+        <span x-show="carrito.length" class="badge badge-primary badge-sm" x-text="carrito.length + ' items'"></span>
+      </div>
+      <div class="flex items-center gap-1">
+        <span class="text-[10px] text-base-content/40 font-mono" x-text="folioActual"></span>
+        <button @click="carritoAbierto = false" x-show="carritoAbierto"
+                class="btn btn-ghost btn-xs btn-circle lg:hidden">
+          <i class="bi bi-x-lg text-sm"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Carrito vacío -->
+    <div x-show="carrito.length === 0" class="flex-1 flex flex-col items-center justify-center py-10 px-4">
+      <div class="w-16 h-16 rounded-2xl bg-base-200 flex items-center justify-center mb-3">
+        <i class="bi bi-cart text-2xl text-base-content/30"></i>
+      </div>
+      <p class="text-sm font-medium text-base-content/50">Carrito vacío</p>
+      <p class="text-xs text-base-content/30 mt-1 text-center">Selecciona productos de la lista para agregarlos</p>
+    </div>
+
+    <!-- Items del carrito -->
+    <div x-show="carrito.length" class="flex-1 overflow-y-auto px-2 py-2 ventas-cart-items" style="max-height:calc(100vh - 420px)">
+      <template x-for="(item, idx) in carrito" :key="idx">
+        <div class="flex items-start gap-2 p-2 rounded-xl hover:bg-base-200/50 transition-colors group relative">
+
+          <!-- Info item -->
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-medium truncate leading-tight" x-text="item.nombre"></div>
+            <div class="text-xs text-base-content/40" x-text="'$ ' + item.precio.toFixed(2)"></div>
+
+            <!-- Controles cantidad -->
+            <div class="flex items-center gap-1 mt-1.5">
+              <button @click="cambiarCantidad(idx, -1)"
+                      class="btn btn-ghost btn-xs btn-circle text-base-content/50 hover:text-primary"
+                      :disabled="item.cantidad <= 1">
+                <i class="bi bi-dash"></i>
+              </button>
+              <span class="text-sm font-semibold w-8 text-center tabular-nums" x-text="item.cantidad"></span>
+              <button @click="cambiarCantidad(idx, 1)"
+                      class="btn btn-ghost btn-xs btn-circle text-base-content/50 hover:text-primary"
+                      :disabled="item.cantidad >= stockDisponible(item.productoId)">
+                <i class="bi bi-plus"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Total línea -->
+          <div class="text-right shrink-0">
+            <div class="text-sm font-bold tabular-nums"
+                 x-text="'$ ' + (item.precio * item.cantidad - (item.descuento || 0)).toFixed(2)"></div>
+            <div x-show="item.descuento" class="text-[10px] text-error">
+              -$ <span x-text="item.descuento.toFixed(2)"></span>
+            </div>
+          </div>
+
+          <!-- Botón eliminar -->
+          <button @click="quitarDelCarrito(idx)"
+                  class="btn btn-ghost btn-xs btn-circle text-base-content/20 hover:text-error opacity-0 group-hover:opacity-100 transition-opacity absolute top-1 right-1">
+            <i class="bi bi-x"></i>
+          </button>
+
+        </div>
+      </template>
+    </div>
+
+    <!-- Footer carrito -->
+    <div x-show="carrito.length" class="border-t border-base-200 p-4 space-y-3">
+
+      <!-- Subtotal -->
+      <div class="flex items-center justify-between text-sm">
+        <span class="text-base-content/50">Subtotal</span>
+        <span class="font-semibold tabular-nums" x-text="'$ ' + subtotal.toFixed(2)"></span>
+      </div>
+
+      <!-- Total -->
+      <div class="flex items-center justify-between">
+        <span class="font-bold text-lg">Total</span>
+        <span class="font-bold text-lg text-primary tabular-nums" x-text="'$ ' + total.toFixed(2)"></span>
+      </div>
+
+      <!-- Botón cobrar -->
+      <button @click="abrirPagoModal" class="btn btn-primary w-full gap-2 btn-spring"
+              :disabled="carrito.length === 0">
+        <i class="bi bi-credit-card"></i>
+        Cobrar $ <span x-text="total.toFixed(2)"></span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- MODAL: Método de pago -->
+  <div x-show="showPagoModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+       @click.away="showPagoModal = false">
+    <div class="absolute inset-0 bg-base-300/60 backdrop-blur-sm"></div>
+    <div class="relative bg-base-100 rounded-2xl shadow-2xl border border-base-200 w-full max-w-sm overflow-hidden">
+
+      <!-- Header -->
+      <div class="px-5 py-4 border-b border-base-200 flex items-center justify-between">
+        <h3 class="font-semibold">Seleccionar método de pago</h3>
+        <button @click="showPagoModal = false" class="btn btn-ghost btn-xs btn-circle">
+          <i class="bi bi-x-lg text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Cuerpo -->
+      <div class="p-5 space-y-3">
+        <div class="text-center mb-4">
+          <div class="text-3xl font-bold text-primary tabular-nums" x-text="'$ ' + total.toFixed(2)"></div>
+          <div class="text-xs text-base-content/40 mt-1">Total a cobrar</div>
+        </div>
+
+        <button @click="finalizarVenta('efectivo')"
+                class="btn btn-outline btn-lg w-full justify-start gap-4 h-16 rounded-2xl">
+          <i class="bi bi-cash-stack text-2xl text-success"></i>
+          <div class="text-left">
+            <div class="font-semibold">Efectivo</div>
+            <div class="text-xs text-base-content/40">Pago en efectivo</div>
+          </div>
+        </button>
+
+        <button @click="finalizarVenta('tarjeta')"
+                class="btn btn-outline btn-lg w-full justify-start gap-4 h-16 rounded-2xl">
+          <i class="bi bi-credit-card-2-front text-2xl text-info"></i>
+          <div class="text-left">
+            <div class="font-semibold">Tarjeta</div>
+            <div class="text-xs text-base-content/40">Débito / Crédito</div>
+          </div>
+        </button>
+
+        <button @click="finalizarVenta('transferencia')"
+                class="btn btn-outline btn-lg w-full justify-start gap-4 h-16 rounded-2xl">
+          <i class="bi bi-phone text-2xl text-secondary"></i>
+          <div class="text-left">
+            <div class="font-semibold">Transferencia</div>
+            <div class="text-xs text-base-content/40">Sinpe / Transferencia bancaria</div>
+          </div>
+        </button>
+      </div>
+
+      <!-- Footer -->
+      <div class="px-5 py-3 border-t border-base-200 text-center">
+        <button @click="showPagoModal = false" class="btn btn-ghost btn-sm">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OVERLAY: Procesando pago -->
+  <div x-show="procesandoPago" class="fixed inset-0 z-[70] flex items-center justify-center">
+    <div class="absolute inset-0 bg-base-300/60 backdrop-blur-sm"></div>
+    <div class="relative bg-base-100 rounded-2xl p-8 shadow-2xl flex flex-col items-center gap-4">
+      <span class="loading loading-spinner loading-lg text-primary"></span>
+      <p class="text-sm font-medium">Procesando venta...</p>
+    </div>
+  </div>
+
+</div>

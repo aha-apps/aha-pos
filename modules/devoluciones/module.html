@@ -1,0 +1,402 @@
+<div x-data="{
+  paso: 1,
+  busqueda: '',
+  ventasFiltradas: [],
+  ventaSel: null,
+  itemsSel: [],
+  cantidades: {},
+  motivo: 'defecto',
+  reembolso: 'parcial',
+  guardando: false,
+  devoluciones: [],
+
+  init() {
+    this.ventasFiltradas = (window.MODULES.devoluciones.ventas || []).slice(-30).reverse();
+    this.devoluciones = window.MODULES.devoluciones.devoluciones || [];
+  },
+
+  buscarVentas() {
+    var q = this.busqueda.toLowerCase().trim();
+    var todas = window.MODULES.devoluciones.ventas || [];
+    if (!q || q.length < 2) {
+      this.ventasFiltradas = todas.slice(-20).reverse();
+      return;
+    }
+    this.ventasFiltradas = todas.filter(function(v) {
+      return v.folio && v.folio.toLowerCase().indexOf(q) !== -1;
+    }).slice(0, 20);
+  },
+
+  seleccionarVenta(v) {
+    this.ventaSel = v;
+    this.itemsSel = [];
+    this.cantidades = {};
+    this.paso = 2;
+  },
+
+  toggleItem(item, e) {
+    var id = item.productoId || item.id || item.nombre || JSON.stringify(item);
+    if (e.target.checked) {
+      this.itemsSel.push(item);
+      this.cantidades[id] = item.cantidad || 1;
+    } else {
+      this.itemsSel = this.itemsSel.filter(function(i) {
+        return (i.productoId || i.id || i.nombre || JSON.stringify(i)) !== id;
+      });
+      delete this.cantidades[id];
+    }
+  },
+
+  actualizarCantidad(item, val) {
+    var id = item.productoId || item.id || item.nombre || JSON.stringify(item);
+    var max = item.cantidad || 1;
+    var v = parseInt(val) || 1;
+    if (v < 1) v = 1;
+    if (v > max) v = max;
+    this.cantidades[id] = v;
+  },
+
+  get ventaItems() {
+    if (!this.ventaSel || !this.ventaSel.items) return [];
+    var arr = this.ventaSel.items;
+    if (typeof arr === 'string') {
+      try { arr = JSON.parse(arr); } catch (e) { return []; }
+    }
+    return arr;
+  },
+
+  get pasoHabilitado() {
+    if (this.paso === 1) return !!this.ventaSel;
+    if (this.paso === 2) return this.itemsSel.length > 0;
+    return true;
+  },
+
+  get itemsConfirmados() {
+    return this.itemsSel.map(function(i) {
+      var id = i.productoId || i.id || i.nombre || '';
+      return {
+        productoId: i.productoId || '',
+        nombre: i.nombre || '',
+        precio: i.precio || 0,
+        cantidad: this.cantidades[id] || i.cantidad || 1
+      };
+    }.bind(this));
+  },
+
+  get totalReembolso() {
+    var t = 0;
+    for (var i = 0; i < this.itemsSel.length; i++) {
+      var it = this.itemsSel[i];
+      var id = it.productoId || it.id || it.nombre || '';
+      var c = this.cantidades[id] || it.cantidad || 1;
+      t += (it.precio || 0) * c;
+    }
+    return t;
+  },
+
+  async confirmarDevolucion() {
+    this.guardando = true;
+    try {
+      var items = [];
+      for (var i = 0; i < this.itemsSel.length; i++) {
+        var it = this.itemsSel[i];
+        var id = it.productoId || it.id || it.nombre || '';
+        items.push({
+          productoId: it.productoId || '',
+          nombre: it.nombre || '',
+          precio: it.precio || 0,
+          cantidad: parseInt(this.cantidades[id]) || it.cantidad || 1
+        });
+      }
+      var ok = await window.MODULES.devoluciones.guardarDevolucion({
+        ventaId: this.ventaSel.id,
+        items: items,
+        motivo: this.motivo,
+        reembolso: this.reembolso
+      });
+      if (ok) {
+        this.paso = 1;
+        this.ventaSel = null;
+        this.itemsSel = [];
+        this.cantidades = {};
+        this.busqueda = '';
+        this.motivo = 'defecto';
+        this.reembolso = 'parcial';
+        this.devoluciones = window.MODULES.devoluciones.devoluciones;
+      }
+    } catch (e) {
+      if (window.UI) UI.toast('Error: ' + e.message, 'error');
+    } finally {
+      this.guardando = false;
+    }
+  },
+
+  cancelar() {
+    this.paso = 1;
+    this.ventaSel = null;
+    this.itemsSel = [];
+    this.cantidades = {};
+    this.busqueda = '';
+    this.motivo = 'defecto';
+    this.reembolso = 'parcial';
+  },
+
+  fmtDate(d) { return window.UI ? UI.formatDate(d) : ''; },
+  fmtMoney(n) {
+    var num = typeof n === 'string' ? parseFloat(n) : (n || 0);
+    return '$' + Number(num).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  },
+  motivoLabel(m) {
+    var map = { defecto: 'Defecto', 'cambio de opinion': 'Cambio de opinión', error: 'Error del vendedor', otro: 'Otro' };
+    return map[m] || m || 'Otro';
+  }
+}" class="space-y-6">
+
+  <!-- Toolbar -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3" x-show="paso === 1">
+    <h2 class="text-xl font-bold">Devoluciones</h2>
+    <button class="btn btn-primary" @click="paso = 1; ventaSel = null; itemsSel = []; cantidades = {}; busqueda = ''">
+      <i class="bi bi-plus-lg"></i> Nueva Devolución
+    </button>
+  </div>
+
+  <!-- Step indicator -->
+  <div x-show="paso > 1" x-cloak class="flex items-center gap-2 text-sm mb-4">
+    <template x-for="(s, i) in ['Venta', 'Productos', 'Detalles', 'Confirmar']" :key="i">
+      <div class="flex items-center gap-2">
+        <div
+          :class="{ 'bg-primary text-primary-content': paso >= i + 1, 'bg-base-300 text-base-content/40': paso < i + 1 }"
+          class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+          x-text="i + 1">
+        </div>
+        <span
+          :class="{ 'font-medium text-base-content': paso === i + 1, 'text-base-content/40': paso !== i + 1 }"
+          class="hidden sm:inline"
+          x-text="s">
+        </span>
+        <template x-if="i < 3"><i class="bi bi-chevron-right text-base-content/20 text-xs"></i></template>
+      </div>
+    </template>
+  </div>
+
+  <!-- Step 1: Seleccionar Venta -->
+  <div x-show="paso === 1">
+    <div class="card-ds p-5">
+      <label class="form-control w-full mb-4">
+        <span class="label-text mb-1 font-medium">Buscar venta por folio</span>
+        <div class="relative">
+          <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-base-content/30"></i>
+          <input
+            type="text"
+            class="input input-bordered w-full pl-10"
+            placeholder="Escribe el folio..."
+            x-model="busqueda"
+            @input.debounce.300ms="buscarVentas">
+        </div>
+      </label>
+      <div class="space-y-2 max-h-96 overflow-y-auto">
+        <template x-for="v in ventasFiltradas" :key="v.id">
+          <div
+            class="flex items-center justify-between p-3 rounded-xl hover:bg-base-200 cursor-pointer transition-colors"
+            :class="{ 'bg-primary/5 border border-primary/20': ventaSel && ventaSel.id === v.id }"
+            @click="seleccionarVenta(v)">
+            <div class="flex-1 min-w-0">
+              <div class="font-medium text-sm" x-text="v.folio || v.id.slice(0, 8)"></div>
+              <div class="text-xs text-base-content/50">
+                <span x-text="v.metodoPago || ''"></span>
+                <span x-show="v.createdAt"> &middot; <span x-text="fmtDate(v.createdAt)"></span></span>
+              </div>
+            </div>
+            <div class="text-right shrink-0 ml-3">
+              <div class="font-semibold text-sm" x-text="fmtMoney(v.total)"></div>
+              <div class="text-xs text-base-content/40" x-text="(typeof v.items === 'string' ? JSON.parse(v.items || '[]').length : (v.items || []).length) + ' artículo(s)'"></div>
+            </div>
+          </div>
+        </template>
+        <template x-if="ventasFiltradas.length === 0">
+          <div class="text-center py-8 text-base-content/40 text-sm">No se encontraron ventas. Realiza una venta primero.</div>
+        </template>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Seleccionar Productos -->
+  <div x-show="paso === 2" x-cloak>
+    <div class="card-ds p-5">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <div class="font-semibold">Productos de la venta</div>
+          <div class="text-xs text-base-content/50" x-text="ventaSel ? ventaSel.folio || ventaSel.id.slice(0, 8) : ''"></div>
+        </div>
+        <span class="text-xs badge badge-ghost" x-text="itemsSel.length + ' seleccionado(s)'"></span>
+      </div>
+      <div class="space-y-2">
+        <template x-for="(item, idx) in ventaItems" :key="idx">
+          <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-base-200 cursor-pointer border border-base-200">
+            <input type="checkbox" class="checkbox checkbox-primary checkbox-sm" @change="toggleItem(item, $event)">
+            <div class="flex-1 min-w-0">
+              <div class="font-medium text-sm" x-text="item.nombre || 'Producto'"></div>
+              <div class="text-xs text-base-content/50">
+                <span x-text="fmtMoney(item.precio)"></span> x <span x-text="item.cantidad || 1"></span>
+              </div>
+            </div>
+            <div class="text-sm font-medium" x-text="fmtMoney((item.precio || 0) * (item.cantidad || 1))"></div>
+          </label>
+        </template>
+      </div>
+      <div class="flex justify-between mt-6">
+        <button class="btn btn-ghost" @click="paso = 1; ventaSel = null"><i class="bi bi-arrow-left"></i> Atrás</button>
+        <button class="btn btn-primary" :disabled="itemsSel.length === 0" @click="paso = 3">Siguiente <i class="bi bi-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: Detalles de la Devolución -->
+  <div x-show="paso === 3" x-cloak>
+    <div class="card-ds p-5">
+      <div class="font-semibold mb-4">Detalles de la devolución</div>
+
+      <div class="space-y-3 mb-5">
+        <template x-for="(item, idx) in itemsSel" :key="idx">
+          <div class="flex items-center gap-3 p-3 bg-base-200/50 rounded-xl">
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium" x-text="item.nombre || 'Producto'"></div>
+              <div class="text-xs text-base-content/50"><span x-text="fmtMoney(item.precio)"></span> / ud.</div>
+            </div>
+            <div class="flex items-center gap-1">
+              <button class="btn btn-ghost btn-xs btn-square" @click="actualizarCantidad(item, parseInt(cantidades[item.productoId || item.id || item.nombre || JSON.stringify(item)] || item.cantidad || 1) - 1)">
+                <i class="bi bi-dash"></i>
+              </button>
+              <input
+                type="number"
+                class="input input-bordered input-xs w-14 text-center"
+                :value="cantidades[item.productoId || item.id || item.nombre || JSON.stringify(item)] || item.cantidad || 1"
+                @input.debounce="actualizarCantidad(item, $event.target.value)"
+                :max="item.cantidad || 1"
+                min="1">
+              <button class="btn btn-ghost btn-xs btn-square" @click="actualizarCantidad(item, parseInt(cantidades[item.productoId || item.id || item.nombre || JSON.stringify(item)] || item.cantidad || 1) + 1)">
+                <i class="bi bi-plus"></i>
+              </button>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <label class="form-control w-full mb-3">
+        <span class="label-text mb-1 font-medium">Motivo de la devolución</span>
+        <select class="select select-bordered" x-model="motivo">
+          <option value="defecto">Defecto</option>
+          <option value="cambio de opinion">Cambio de opinión</option>
+          <option value="error">Error del vendedor</option>
+          <option value="otro">Otro</option>
+        </select>
+      </label>
+
+      <label class="form-control w-full">
+        <span class="label-text mb-1 font-medium">Tipo de reembolso</span>
+        <div class="flex gap-3">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" class="radio radio-primary radio-sm" value="parcial" x-model="reembolso"> Parcial
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" class="radio radio-primary radio-sm" value="total" x-model="reembolso"> Total
+          </label>
+        </div>
+      </label>
+
+      <div class="flex justify-between mt-6">
+        <button class="btn btn-ghost" @click="paso = 2"><i class="bi bi-arrow-left"></i> Atrás</button>
+        <button class="btn btn-primary" @click="paso = 4">Siguiente <i class="bi bi-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 4: Confirmar y Guardar -->
+  <div x-show="paso === 4" x-cloak>
+    <div class="card-ds p-5">
+      <div class="font-semibold mb-4">Confirmar devolución</div>
+
+      <div class="bg-base-200/50 rounded-xl p-4 mb-4 space-y-2">
+        <div class="flex justify-between text-sm">
+          <span class="text-base-content/60">Folio venta:</span>
+          <span class="font-medium" x-text="ventaSel ? ventaSel.folio || ventaSel.id.slice(0, 8) : ''"></span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-base-content/60">Motivo:</span>
+          <span class="font-medium" x-text="motivoLabel(motivo)"></span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-base-content/60">Reembolso:</span>
+          <span class="font-medium" :class="reembolso === 'total' ? 'text-error' : 'text-warning'" x-text="reembolso === 'total' ? 'Total' : 'Parcial'"></span>
+        </div>
+      </div>
+
+      <div class="space-y-2 mb-4">
+        <template x-for="(item, idx) in itemsSel" :key="idx">
+          <div class="flex items-center justify-between p-2">
+            <div class="text-sm">
+              <span x-text="item.nombre"></span> x <span x-text="cantidades[item.productoId || item.id || item.nombre || JSON.stringify(item)] || item.cantidad || 1"></span>
+            </div>
+            <div class="text-sm font-medium" x-text="fmtMoney((item.precio || 0) * (cantidades[item.productoId || item.id || item.nombre || JSON.stringify(item)] || item.cantidad || 1))"></div>
+          </div>
+        </template>
+      </div>
+
+      <div class="flex justify-between items-center py-2 border-t border-base-300">
+        <span class="font-semibold">Total a reembolsar</span>
+        <span class="text-lg font-bold text-primary" x-text="fmtMoney(totalReembolso)"></span>
+      </div>
+
+      <div class="flex justify-between mt-6">
+        <button class="btn btn-ghost" @click="paso = 3"><i class="bi bi-arrow-left"></i> Atrás</button>
+        <button class="btn btn-success" :disabled="guardando" @click="confirmarDevolucion">
+          <i class="bi bi-check-lg" x-show="!guardando"></i>
+          <span class="loading loading-spinner loading-sm" x-show="guardando"></span>
+          <span x-text="guardando ? 'Guardando...' : 'Confirmar Devolución'"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Historial de devoluciones -->
+  <div x-show="paso === 1" x-cloak>
+    <template x-if="devoluciones.length === 0">
+      <div class="empty-state">
+        <div class="empty-state-icon bg-warning/10 text-warning"><i class="bi bi-arrow-return-left"></i></div>
+        <div class="empty-state-title">Sin devoluciones</div>
+        <div class="empty-state-desc">No hay devoluciones registradas aún. Usa el botón "Nueva Devolución" para comenzar.</div>
+      </div>
+    </template>
+    <template x-if="devoluciones.length > 0">
+      <div class="overflow-x-auto">
+        <table class="table table-zebra table-sm">
+          <thead>
+            <tr>
+              <th>Folio Venta</th>
+              <th>Producto(s)</th>
+              <th>Cant</th>
+              <th>Motivo</th>
+              <th>Reembolso</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="d in devoluciones" :key="d.id">
+              <tr>
+                <td class="font-medium text-sm" x-text="(window.MODULES.devoluciones.getVenta(d.ventaId)?.folio || d.ventaId.slice(0, 8))"></td>
+                <td class="text-sm" x-text="(d.items && d.items.length > 0) ? d.items[0].nombre + (d.items.length > 1 ? ' +' + (d.items.length - 1) : '') : d.productoId || '—'"></td>
+                <td class="text-sm" x-text="d.cantidad"></td>
+                <td><span class="badge badge-ghost badge-sm" x-text="motivoLabel(d.motivo) || 'Otro'"></span></td>
+                <td>
+                  <span class="badge badge-sm" :class="d.reembolso === 'total' ? 'badge-error' : 'badge-warning'" x-text="d.reembolso || 'parcial'"></span>
+                </td>
+                <td class="text-sm text-base-content/60" x-text="fmtDate(d.createdAt)"></td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </template>
+  </div>
+
+</div>

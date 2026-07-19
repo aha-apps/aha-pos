@@ -1,0 +1,29 @@
+{
+  "name": "AHA POS",
+  "short_name": "AHA POS",
+  "description": "Punto de venta offline-first para pequeños negocios",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#059669",
+  "lang": "es-MX",
+  "categories": ["business", "finance", "productivity"],
+  "icons": [
+    {
+      "src": "data/defaults/placeholder.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data/defaults/placeholder.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

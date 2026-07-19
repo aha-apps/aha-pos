@@ -1,0 +1,71 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+out/
+release/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temp
+tmp/
+temp/
+*.tmp
+
+# AHA specific
+*.aha
+keys/
+licencias/
+
+# Engram memory
+.omd/
+
+# OpenCode session data
+.od-skills/
+
+# Dexie / IndexedDB backup
+*.dexie-backup
+*.ateje-backup
+
+# Neutralino (Professional profile)
+neutralino.js
+.bin/
+
+# Capacitor (Business profile)
+android/
+ios/
+capacitor-cordova-android-plugins/
+plugins/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Test
+playwright-report/
+test-results/

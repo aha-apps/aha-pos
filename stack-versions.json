@@ -1,0 +1,338 @@
+{
+  "$schema": "./stack-versions.schema.json",
+  "version": "1.0.0",
+  "updated": "2026-07-08",
+  "auditUrl": "https://raw.githubusercontent.com/anomalyco/Ateje/main/docs/stack-versiones.md",
+  "notes": [
+    "Este archivo es la UNICA fuente de verdad para versiones de librerias del Stack Ateje.",
+    "Todas las skills (setup-init, code-generator, etc.) DEBEN leer versiones desde aqui.",
+    "Ejecutar 'scripts/update-libs.ps1' para verificar y actualizar versiones automaticamente.",
+    "El campo 'pinned' es la version congelada actual. 'latest' es la ultima disponible.",
+    "Para romper el cache de CDN tras actualizar, cambiar 'pinned' y ejecutar setup-init."
+  ],
+  "metadata": {
+    "repo": "anomalyco/Ateje",
+    "cdnPrimary": "cdn.jsdelivr.net/npm",
+    "cdnFallback": "cdnjs.cloudflare.com/ajax/libs",
+    "cdnSheetJS": "cdn.sheetjs.com",
+    "cdnUnpkg": "unpkg.com",
+    "updatePolicy": "pinned"
+  },
+  "libraries": {
+    "alpinejs": {
+      "name": "Alpine.js",
+      "pinned": "3.14.1",
+      "latest": "3.15.12",
+      "type": "js",
+      "scope": "core",
+      "status": "active",
+      "profiles": ["lite", "professional", "business"],
+      "files": {
+        "assets/js/libs/alpine.js": "https://cdn.jsdelivr.net/npm/alpinejs@{version}/dist/cdn.min.js"
+      },
+      "npm": "alpinejs",
+      "npmSpec": "^3.14.0",
+      "changelog": "https://github.com/alpinejs/alpine/releases",
+      "breaking": false
+    },
+    "tailwindcss": {
+      "name": "Tailwind CSS",
+      "pinned": "2.2.19",
+      "latest": "4.3.2",
+      "type": "css",
+      "scope": "core",
+      "status": "deprecated",
+      "profiles": ["lite", "professional", "business"],
+      "files": {
+        "assets/css/tailwind.min.css": "https://cdn.jsdelivr.net/npm/tailwindcss@{version}/dist/tailwind.min.css"
+      },
+      "npm": "tailwindcss",
+      "npmSpec": "^2.2.0",
+      "changelog": "https://github.com/tailwindlabs/tailwindcss/releases",
+      "breaking": true,
+      "migrationGuide": "https://tailwindcss.com/docs/upgrade-guide",
+      "notes": "v2.2.19 MUY obsoleta. La migracion a v3 requiere cambios en clases CSS (bg-opacity-* -> bg-black/50). v4 es CSS-first sin PostCSS. Evaluar migracion con DaisyUI coordinada."
+    },
+    "daisyui": {
+      "name": "DaisyUI",
+      "pinned": "4.12.10",
+      "latest": "5.6.14",
+      "type": "css",
+      "scope": "core",
+      "status": "deprecated",
+      "profiles": ["lite", "professional", "business"],
+      "files": {
+        "assets/css/daisyui.min.css": "https://cdn.jsdelivr.net/npm/daisyui@{version}/dist/full.css"
+      },
+      "npm": "daisyui",
+      "npmSpec": "^4.12.0",
+      "changelog": "https://daisyui.com/docs/changelog/",
+      "breaking": true,
+      "migrationGuide": "https://daisyui.com/docs/migration/",
+      "notes": "v4 -> v5 cambia a configuracion CSS-only (sin tailwind.config.js). Requiere Tailwind v3+. Migrar siempre junto con Tailwind."
+    },
+    "dexie": {
+      "name": "Dexie.js",
+      "pinned": "4.0.8",
+      "latest": "4.4.4",
+      "type": "js",
+      "scope": "core",
+      "status": "active",
+      "profiles": ["lite", "professional", "business"],
+      "files": {
+        "assets/js/libs/dexie.js": "https://unpkg.com/dexie@{version}/dist/dexie.min.js"
+      },
+      "npm": "dexie",
+      "npmSpec": "^4.0.0",
+      "changelog": "https://github.com/dexie/Dexie.js/releases",
+      "breaking": false
+    },
+    "cryptojs": {
+      "name": "CryptoJS",
+      "pinned": "4.2.0",
+      "latest": "4.2.0",
+      "type": "js",
+      "scope": "core",
+      "status": "legacy",
+      "profiles": ["lite", "professional", "business"],
+      "files": {
+        "assets/js/libs/crypto-js.js": "https://cdnjs.cloudflare.com/ajax/libs/crypto-js/{version}/crypto-js.min.js"
+      },
+      "npm": "crypto-js",
+      "npmSpec": "^4.2.0",
+      "changelog": "https://github.com/brix/crypto-js/releases",
+      "breaking": false,
+      "alternative": {
+        "name": "Web Crypto API",
+        "reason": "Proyecto discontinuado desde 2023. Web Crypto API es nativa, mas rapida y segura.",
+        "effort": "Alto (refactor completo del modulo cipher)",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API"
+      },
+      "notes": "Funciona perfecto para AES offline. No migrar ahora, solo monitorear."
+    },
+    "pako": {
+      "name": "pako",
+      "pinned": "2.1.0",
+      "latest": "3.0.0",
+      "type": "js",
+      "scope": "core",
+      "status": "active",
+      "profiles": ["lite", "professional", "business"],
+      "files": {
+        "assets/js/libs/pako.js": "https://cdnjs.cloudflare.com/ajax/libs/pako/{version}/pako.min.js"
+      },
+      "npm": "pako",
+      "npmSpec": "^2.1.0",
+      "changelog": "https://github.com/nodeca/pako/blob/master/CHANGELOG.md",
+      "breaking": true,
+      "notes": "v3.0.0 (Jun 2026) cambia a named-only exports, TypeScript. Esperar antes de migrar."
+    },
+    "chartjs": {
+      "name": "Chart.js",
+      "pinned": "4.4.6",
+      "latest": "4.5.1",
+      "type": "js",
+      "scope": "core",
+      "status": "active",
+      "profiles": ["lite", "professional", "business"],
+      "files": {
+        "assets/js/libs/chart.js": "https://cdn.jsdelivr.net/npm/chart.js@{version}/dist/chart.umd.min.js"
+      },
+      "npm": "chart.js",
+      "npmSpec": "^4.4.0",
+      "changelog": "https://github.com/chartjs/Chart.js/releases",
+      "breaking": false
+    },
+    "bootstrap-icons": {
+      "name": "Bootstrap Icons",
+      "pinned": "1.11.3",
+      "latest": "1.13.1",
+      "type": "css",
+      "scope": "core",
+      "status": "active",
+      "profiles": ["lite", "professional", "business"],
+      "files": {
+        "assets/css/bootstrap-icons.css": "https://cdn.jsdelivr.net/npm/bootstrap-icons@{version}/font/bootstrap-icons.css",
+        "assets/fonts/bootstrap-icons.woff2": "https://cdn.jsdelivr.net/npm/bootstrap-icons@{version}/font/fonts/bootstrap-icons.woff2"
+      },
+      "npm": "bootstrap-icons",
+      "npmSpec": "^1.11.0",
+      "changelog": "https://github.com/twbs/icons/releases",
+      "breaking": false
+    },
+    "animate.css": {
+      "name": "animate.css",
+      "pinned": "4.1.1",
+      "latest": "4.1.1",
+      "type": "css",
+      "scope": "core",
+      "status": "legacy",
+      "profiles": ["lite", "professional", "business"],
+      "files": {
+        "assets/css/animate.min.css": "https://cdnjs.cloudflare.com/ajax/libs/animate.css/{version}/animate.min.css"
+      },
+      "npm": "animate.css",
+      "npmSpec": "^4.1.0",
+      "changelog": "https://github.com/animate-css/animate.css/releases",
+      "breaking": false,
+      "notes": "Sin actualizaciones desde 2020. CSS de animaciones raramente cambia."
+    },
+    "jspdf": {
+      "name": "jsPDF",
+      "pinned": "2.5.1",
+      "latest": "4.2.1",
+      "type": "js",
+      "scope": "core",
+      "status": "active",
+      "profiles": ["lite", "professional", "business"],
+      "files": {
+        "assets/js/libs/jspdf.js": "https://cdnjs.cloudflare.com/ajax/libs/jspdf/{version}/jspdf.umd.min.js"
+      },
+      "npm": "jspdf",
+      "npmSpec": "^2.5.0",
+      "changelog": "https://github.com/parallax/jsPDF/releases",
+      "breaking": true,
+      "notes": "v3 y v4 tienen breaking changes. v4.2.1 corrige CVE path traversal. Migrar con precaucion."
+    },
+    "xlsx": {
+      "name": "SheetJS (xlsx)",
+      "pinned": "0.20.2",
+      "latest": "0.20.3",
+      "type": "js",
+      "scope": "core",
+      "status": "active",
+      "profiles": ["lite", "professional", "business"],
+      "files": {
+        "assets/js/libs/xlsx.js": "https://cdn.sheetjs.com/xlsx-{version}/package/dist/xlsx.full.min.js"
+      },
+      "npm": "xlsx",
+      "npmSpec": "^0.20.0",
+      "changelog": "https://docs.sheetjs.com/docs/",
+      "breaking": false,
+      "notes": "npm registry esta desactualizado (0.18.5). Usar siempre CDN oficial sheetjs.com."
+    },
+    "qrcodejs": {
+      "name": "QRCode.js",
+      "pinned": "1.0.0",
+      "latest": "1.0.0",
+      "type": "js",
+      "scope": "optional",
+      "status": "legacy",
+      "profiles": ["lite", "professional", "business"],
+      "files": {
+        "assets/js/libs/qrcode.min.js": "https://cdn.jsdelivr.net/npm/qrcodejs@{version}/qrcode.min.js"
+      },
+      "npm": "qrcode",
+      "npmSpec": "^1.5.4",
+      "changelog": "https://github.com/cozmo/qrcode/releases",
+      "breaking": false,
+      "alternative": {
+        "name": "qrcode (npm)",
+        "reason": "QRCode.js original abandonado desde 2015. 'qrcode' npm (v1.5.4) es activo, compatible con canvas/SVG/table.",
+        "effort": "Bajo (API similar, cambiar nombre de la funcion)",
+        "url": "https://www.npmjs.com/package/qrcode"
+      },
+      "notes": "Actual libreria original de davidshimjs abandonada. Recomendado migrar a 'qrcode' npm."
+    },
+    "sql.js": {
+      "name": "sql.js (SQLite WASM)",
+      "pinned": "1.10",
+      "latest": "1.14.1",
+      "type": "wasm",
+      "scope": "professional",
+      "status": "active",
+      "profiles": ["professional", "business"],
+      "files": {
+        "assets/wasm/sql-wasm.wasm": "https://cdn.jsdelivr.net/npm/sql.js@{version}/dist/sql-wasm.wasm",
+        "assets/wasm/sql-wasm.js": "https://cdn.jsdelivr.net/npm/sql.js@{version}/dist/sql-wasm.js"
+      },
+      "npm": "sql.js",
+      "npmSpec": "^1.10.0",
+      "changelog": "https://github.com/sql-js/sql.js/releases",
+      "breaking": false
+    },
+    "flexsearch": {
+      "name": "FlexSearch",
+      "pinned": "0.7.31",
+      "latest": "0.8.212",
+      "type": "js",
+      "scope": "ia",
+      "status": "active",
+      "profiles": ["lite", "professional", "business"],
+      "files": {
+        "assets/js/libs/flexsearch.min.js": "https://cdn.jsdelivr.net/npm/flexsearch@{version}/dist/flexsearch.bundle.min.js"
+      },
+      "npm": "flexsearch",
+      "npmSpec": "^0.7.0",
+      "changelog": "https://github.com/nextapps-de/flexsearch/releases",
+      "breaking": true,
+      "notes": "v0.8 introduce Persistent Indexes y cambios de API. Evaluar si el modulo IA lo necesita."
+    },
+    "dayjs": {
+      "name": "Day.js",
+      "pinned": "1.11.10",
+      "latest": "1.11.13",
+      "type": "js",
+      "scope": "optional",
+      "status": "active",
+      "profiles": ["lite", "professional", "business"],
+      "files": {
+        "assets/js/libs/dayjs.min.js": "https://cdn.jsdelivr.net/npm/dayjs@{version}/dayjs.min.js"
+      },
+      "npm": "dayjs",
+      "npmSpec": "^1.11.0",
+      "changelog": "https://github.com/iamkun/dayjs/releases",
+      "breaking": false
+    }
+  },
+  "profiles": {
+    "lite": {
+      "display": "Lite (Essential)",
+      "libs": ["alpinejs", "tailwindcss", "daisyui", "dexie", "cryptojs", "pako", "chartjs", "bootstrap-icons", "animate.css", "jspdf", "xlsx", "qrcodejs"],
+      "optional": ["dayjs"],
+      "ia": ["flexsearch"]
+    },
+    "professional": {
+      "display": "Professional",
+      "libs": ["alpinejs", "tailwindcss", "daisyui", "dexie", "cryptojs", "pako", "chartjs", "bootstrap-icons", "animate.css", "jspdf", "xlsx", "qrcodejs", "sql.js"],
+      "optional": ["dayjs"],
+      "ia": ["flexsearch"]
+    },
+    "business": {
+      "display": "Business",
+      "libs": ["alpinejs", "tailwindcss", "daisyui", "dexie", "cryptojs", "pako", "chartjs", "bootstrap-icons", "animate.css", "jspdf", "xlsx", "qrcodejs", "sql.js"],
+      "optional": ["dayjs"],
+      "ia": ["flexsearch"]
+    }
+  },
+  "tools": {
+    "neutralino-cli": {
+      "name": "Neutralino CLI",
+      "npm": "@neutralinojs/neu",
+      "latest": "11.7.2",
+      "pinned": "11.7.2",
+      "status": "active",
+      "notes": "npm install -g @neutralinojs/neu"
+    },
+    "neutralino-framework": {
+      "name": "Neutralino Framework",
+      "pinned": "6.0.0",
+      "latest": "6.8.0",
+      "status": "active",
+      "configKey": "cli.binaryVersion",
+      "notes": "Actualizar en deployment-jigue/templates/neutralino.config.json"
+    },
+    "capacitor-android": {
+      "name": "Capacitor Android",
+      "pinned": {
+        "gradleVersion": "8.2.1",
+        "agpVersion": "8.2.0",
+        "minSdkVersion": 26,
+        "targetSdkVersion": 34,
+        "compileSdkVersion": 34
+      },
+      "status": "active",
+      "notes": "Actualizar en capacitor/templates/capacitor.config.json"
+    }
+  }
+}
