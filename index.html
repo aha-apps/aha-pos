@@ -20,8 +20,12 @@
   <style>
     html { font-family: 'Inter', system-ui, sans-serif; scroll-behavior: smooth; }
     [x-cloak] { display: none !important; }
+    *:focus-visible { outline: 2px solid var(--fallback-p,oklch(var(--p))); outline-offset: 2px; border-radius: 0.25rem; }
+    .btn:focus-visible, .bottom-nav-item:focus-visible { outline-offset: 0; border-radius: var(--rounded-btn,0.5rem); }
+    input:focus-visible, select:focus-visible, textarea:focus-visible { outline-offset: 0; }
 
-    .sk-el { background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 0.5rem; }
+    /* ─── Skeleton shimmer ─────────────── */
+    .sk-el { background: linear-gradient(90deg, var(--fallback-b2,oklch(var(--b2))) 25%, var(--fallback-b3,oklch(var(--b3))) 50%, var(--fallback-b2,oklch(var(--b2))) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 0.5rem; }
     .sk-heading { height: 1.5rem; width: 60%; margin-bottom: 1rem; }
     .sk-card { height: 8rem; width: 100%; margin-bottom: 0.75rem; }
     .sk-row { height: 3rem; width: 100%; margin-bottom: 0.5rem; }
@@ -31,154 +35,163 @@
     .sk-chart { height: 260px; width: 100%; border-radius: 0.75rem; }
     .sk-progress { height: 0.75rem; width: 100%; border-radius: 9999px; }
     @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .animate-slide-up { animation: slideUp 0.2s ease-out; }
+    @keyframes slideUp { 0% { opacity: 0; transform: translateY(8px) scale(0.98); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
 
-    .card-ds { background: #fff; border-radius: 16px; box-shadow: 0 6px 16px rgba(0,0,0,0.06); transition: transform 0.2s ease, box-shadow 0.2s ease; }
-    .card-ds:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
-    .dark .card-ds { background: #1e293b; }
+    /* ─── KPI tokens ──────────────────── */
+    .kpi-value { font-size: 1.5rem; font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; }
+    .kpi-label { font-size: 0.675rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--fallback-bc,oklch(var(--bc))/0.55); }
 
-    .input-ds { height: 44px; border-radius: 24px; padding: 0 16px; border: 1px solid #E7EBF2; background: #fff; font-size: 14px; color: #1F2937; outline: none; transition: all 0.2s ease; }
-    .input-ds:focus { border-color: #059669; box-shadow: 0 0 0 3px rgba(5,150,105,0.15); }
-    .input-ds::placeholder { color: #9CA3AF; }
-
-    .btn-ds { height: 40px; border-radius: 9999px; padding: 0 24px; font-size: 14px; font-weight: 500; border: none; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; }
-    .btn-ds:active { transform: scale(0.97); }
-    .btn-ds-primary { background: #059669; color: #fff; }
-    .btn-ds-primary:hover { background: #047857; }
-    .btn-ds-secondary { background: #78716c; color: #fff; }
-    .btn-ds-secondary:hover { background: #57534e; }
-    .btn-ds-ghost { background: #F3F4F6; color: #4B5563; }
-    .btn-ds-ghost:hover { background: #E5E7EB; }
-    .btn-ds-danger { background: rgba(239,68,68,0.1); color: #EF4444; }
-    .btn-ds-danger:hover { background: rgba(239,68,68,0.2); }
-    .btn-ds-sm { height: 32px; padding: 0 16px; font-size: 12px; border-radius: 9999px; }
+    /* ─── Spring button ───────────────── */
     .btn-spring { transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, box-shadow 0.2s ease; }
     .btn-spring:hover { transform: scale(1.03); }
     .btn-spring:active { transform: scale(0.97); }
 
-    .field-error { color: #EF4444; font-size: 12px; margin-top: 4px; display: none; }
-    .input-error { border-color: #EF4444 !important; }
+    /* ─── Validation ──────────────────── */
+    .field-error { color: var(--fallback-er,oklch(var(--er))); font-size: 0.75rem; margin-top: 0.25rem; display: none; }
+    .input-error { border-color: var(--fallback-er,oklch(var(--er))) !important; }
 
-    .kpi-value { font-size: 24px; font-weight: 700; color: #1F2937; line-height: 1.2; }
-    .kpi-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; color: #4B5563; }
+    /* ─── Ventas cart panel ───────────── */
+    .ventas-cart-panel { transition: all 0.25s ease-in-out; }
+    .ventas-cart-panel.fixed { animation: cartSlideIn 0.25s ease-out; }
+    @keyframes cartSlideIn { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
 
-    .fab { display: none; position: fixed; bottom: 76px; right: 16px; z-index: 40; width: 52px; height: 52px; border-radius: 16px; background: #059669; color: #fff; border: none; cursor: pointer; box-shadow: 0 4px 16px rgba(5,150,105,0.35); font-size: 22px; align-items: center; justify-content: center; transition: transform 0.2s; }
+    /* ─── FAB mobile ──────────────────── */
+    .fab { display: none; position: fixed; bottom: 5rem; right: 1rem; z-index: 40; width: 3.25rem; height: 3.25rem; border-radius: 1rem; background: var(--fallback-p,oklch(var(--p))); color: var(--fallback-pc,oklch(var(--pc))); border: none; cursor: pointer; box-shadow: 0 4px 16px color-mix(in oklab, var(--fallback-p,oklch(var(--p))), transparent 60%); font-size: 1.375rem; align-items: center; justify-content: center; transition: transform 0.2s; }
     .fab:active { transform: scale(0.92); }
     @media (max-width: 1023px) { .fab { display: flex; } }
 
-    .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; background: #fff; border-top: 1px solid #E5E7EB; padding: 6px 0 env(safe-area-inset-bottom, 8px); }
-    .dark .bottom-nav { background: #1e293b; border-top-color: #334155; }
-    .bottom-nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10px; font-weight: 500; color: #6B7280; text-decoration: none; padding: 4px 8px; border-radius: 8px; transition: all 0.15s; background: none; border: none; cursor: pointer; font-family: inherit; }
-    .bottom-nav-item.active { color: #059669; }
-    .bottom-nav-item i { font-size: 20px; }
+    /* ─── Bottom nav ──────────────────── */
+    .bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; background: var(--fallback-b1,oklch(var(--b1))); border-top: 1px solid var(--fallback-b2,oklch(var(--b2))); padding: 0.375rem 0 env(safe-area-inset-bottom, 0.5rem); }
+    .bottom-nav-item { display: flex; flex-direction: column; align-items: center; gap: 0.125rem; font-size: 0.625rem; font-weight: 500; color: var(--fallback-bc,oklch(var(--bc))/0.5); text-decoration: none; padding: 0.25rem 0.5rem; border-radius: 0.5rem; transition: all 0.15s; background: none; border: none; cursor: pointer; font-family: inherit; }
+    .bottom-nav-item.active { color: var(--fallback-p,oklch(var(--p))); }
+    .bottom-nav-item i { font-size: 1.25rem; }
     @media (max-width: 1023px) { .bottom-nav { display: flex; justify-content: space-around; } }
 
-    .empty-state { text-align: center; padding: 48px 24px; }
-    .empty-state-icon { width: 80px; height: 80px; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
-    .empty-state-icon i { font-size: 36px; }
-    .empty-state-title { font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 4px; }
-    .empty-state-desc { font-size: 13px; color: #6B7280; margin-bottom: 16px; }
+    /* ─── Empty states ────────────────── */
+    .empty-state { text-align: center; padding: 3rem 1.5rem; }
+    .empty-state-icon { width: 5rem; height: 5rem; border-radius: 1.25rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; background: var(--fallback-b2,oklch(var(--b2))); }
+    .empty-state-icon i { font-size: 2.25rem; color: var(--fallback-bc,oklch(var(--bc))/0.3); }
+    .empty-state-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; }
+    .empty-state-desc { font-size: 0.8125rem; color: var(--fallback-bc,oklch(var(--bc))/0.5); margin-bottom: 1rem; }
 
-    .toast-undo-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 2px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600; cursor: pointer; margin-left: 8px; white-space: nowrap; }
+    /* ─── Toast undo ──────────────────── */
+    .toast-undo-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 0.125rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; cursor: pointer; margin-left: 0.5rem; white-space: nowrap; }
+
+    /* ─── Online banner ───────────────── */
     .offline-banner { animation: slideDown 0.3s ease-out; }
 
+    /* ─── Avatar ─────────────────────── */
     .avatar-img { border-radius: 50%; object-fit: cover; display: block; flex-shrink: 0; }
-    .avatar-placeholder { border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; background: rgba(5,150,105,0.12); color: #059669; flex-shrink: 0; }
+    .avatar-placeholder { border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; background: var(--fallback-p,oklch(var(--p))/0.12); color: var(--fallback-p,oklch(var(--p))); flex-shrink: 0; }
 
+    /* ─── Sidebar ─────────────────────── */
     #sidebar { transition: transform 0.25s ease; }
     @media (max-width: 1023px) { #sidebar { transform: translateX(-100%); position: fixed; z-index: 60; } }
     @media (max-width: 1023px) { #sidebar.open { transform: translateX(0); } }
-
     .sidebar-overlay { display: none; }
     @media (max-width: 1023px) { .sidebar-overlay.open { display: block; position: fixed; inset: 0; z-index: 55; background: rgba(0,0,0,0.3); } }
 
+    /* ─── Animation helpers ──────────── */
     .stagger-item { animation: fadeInUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
     .module-enter { animation: fadeIn 0.25s ease-out; }
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(0.75rem); } to { opacity: 1; transform: translateY(0); } }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+    @keyframes pulse-dot { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
 
+    /* ─── Search palette ─────────────── */
     .sp-search-input:focus { outline: none; box-shadow: none; }
 
+    /* ─── Layout ──────────────────────── */
     #main-content { min-height: calc(100vh - 64px); }
-    @media (max-width: 1023px) { #main-content { padding-bottom: 72px; } }
+    @media (max-width: 1023px) { #main-content { padding-bottom: 4.5rem; } }
 
-    .toast-container { position: fixed; top: 16px; right: 16px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    /* ─── Toast container ─────────────── */
+    .toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem; pointer-events: none; }
     .toast-container > * { pointer-events: auto; }
+
+    /* ─── POS-specific card (refined) ─── */
+    .pos-card { border-radius: 1rem; border: 1px solid var(--fallback-b2,oklch(var(--b2))); background: var(--fallback-b1,oklch(var(--b1))); box-shadow: 0 1px 3px var(--fallback-bc,oklch(var(--bc))/0.04); transition: box-shadow 0.2s; }
+    .pos-card:hover { box-shadow: 0 4px 12px var(--fallback-bc,oklch(var(--bc))/0.06); }
   </style>
 </head>
 <body x-cloak class="min-h-screen bg-base-200"><script>document.body.removeAttribute('x-cloak');</script>
-  <div id="offline-banner" x-data x-show="!$store.ui.online" x-cloak class="offline-banner bg-warning text-warning-content text-center text-sm py-1.5 font-medium flex items-center justify-center gap-2">
+  <div id="offline-banner" x-data x-show="!$store.ui.online" x-cloak class="offline-banner bg-warning/90 text-warning-content text-center text-xs sm:text-sm py-1.5 font-medium flex items-center justify-center gap-2 backdrop-blur-sm">
     <i class="bi bi-wifi-off"></i>
-    <span>Sin conexión — los datos se guardan localmente</span>
+    <span>Sin conexión</span>
+    <span class="hidden sm:inline text-warning-content/70">&mdash; los datos se guardan localmente</span>
+    <span class="inline-flex w-1.5 h-1.5 rounded-full bg-warning-content/60 animate-pulse" style="animation: pulse-dot 2s infinite"></span>
   </div>
 
   <!-- Sidebar Overlay (mobile) -->
   <div id="sidebar-overlay" class="sidebar-overlay" x-data x-show="$store.app.sidebarOpen" @click="$store.app.sidebarOpen = false"></div>
 
   <!-- Sidebar -->
-  <aside id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-base-100 border-r border-base-200 z-60 flex flex-col"
+  <aside id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-base-100 border-r border-base-200 z-60 flex flex-col shadow-sm"
          :class="{ 'open': $store.app.sidebarOpen }"
          x-data>
-    <div class="p-4 border-b border-base-200 flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-content font-bold text-lg">P</div>
+    <div class="p-5 border-b border-base-200 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-primary-content font-bold text-lg shadow-sm">P</div>
       <div>
-        <div class="font-bold text-base">AHA POS</div>
-        <div class="text-xs text-base-content/50">Punto de Venta</div>
+        <div class="font-bold text-base leading-tight">AHA POS</div>
+        <div class="text-[11px] text-base-content/40 font-medium tracking-wide">Punto de Venta</div>
       </div>
     </div>
-    <nav class="flex-1 overflow-y-auto p-3 space-y-1">
-      <a href="#/ventas" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors hover:bg-base-200"
-         :class="{ 'bg-primary/10 text-primary': $store.app.moduloActual === 'ventas' }"
+    <nav class="flex-1 overflow-y-auto p-3 space-y-0.5">
+      <a href="#/ventas" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 hover:bg-base-200"
+         :class="{ 'bg-primary/10 text-primary font-semibold shadow-sm': $store.app.moduloActual === 'ventas' }"
          @click.prevent="window.appRouter?.navigate('ventas'); $store.app.sidebarOpen = false">
         <i class="bi bi-cart3 text-lg"></i> Ventas
         <span x-show="$store.badges.ventas" class="ml-auto badge badge-primary badge-sm" x-text="$store.badges.ventas"></span>
       </a>
-      <a href="#/productos" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors hover:bg-base-200"
-         :class="{ 'bg-primary/10 text-primary': $store.app.moduloActual === 'productos' }"
+      <a href="#/productos" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 hover:bg-base-200"
+         :class="{ 'bg-primary/10 text-primary font-semibold shadow-sm': $store.app.moduloActual === 'productos' }"
          @click.prevent="window.appRouter?.navigate('productos'); $store.app.sidebarOpen = false">
         <i class="bi bi-box-seam text-lg"></i> Productos
         <span x-show="$store.badges.productos" class="ml-auto badge badge-primary badge-sm" x-text="$store.badges.productos"></span>
       </a>
-      <a href="#/corte" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors hover:bg-base-200"
-         :class="{ 'bg-primary/10 text-primary': $store.app.moduloActual === 'corte' }"
+      <a href="#/corte" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 hover:bg-base-200"
+         :class="{ 'bg-primary/10 text-primary font-semibold shadow-sm': $store.app.moduloActual === 'corte' }"
          @click.prevent="window.appRouter?.navigate('corte'); $store.app.sidebarOpen = false">
-        <i class="bi bi-cash-stack text-lg"></i> Corte de Caja
+        <i class="bi bi-cash-stack text-lg"></i> Corte
       </a>
-      <a href="#/devoluciones" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors hover:bg-base-200"
-         :class="{ 'bg-primary/10 text-primary': $store.app.moduloActual === 'devoluciones' }"
+      <a href="#/devoluciones" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 hover:bg-base-200"
+         :class="{ 'bg-primary/10 text-primary font-semibold shadow-sm': $store.app.moduloActual === 'devoluciones' }"
          @click.prevent="window.appRouter?.navigate('devoluciones'); $store.app.sidebarOpen = false">
         <i class="bi bi-arrow-return-left text-lg"></i> Devoluciones
       </a>
-      <a href="#/reportes" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors hover:bg-base-200"
-         :class="{ 'bg-primary/10 text-primary': $store.app.moduloActual === 'reportes' }"
+      <a href="#/reportes" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 hover:bg-base-200"
+         :class="{ 'bg-primary/10 text-primary font-semibold shadow-sm': $store.app.moduloActual === 'reportes' }"
          @click.prevent="window.appRouter?.navigate('reportes'); $store.app.sidebarOpen = false">
         <i class="bi bi-bar-chart-line text-lg"></i> Reportes
       </a>
     </nav>
-    <div class="p-3 border-t border-base-200 text-xs text-base-content/40 text-center">
-      AHA POS v1.0.0 &middot; Lite
+    <div class="p-4 border-t border-base-200 text-[11px] text-base-content/30 text-center leading-relaxed">
+      AHA POS <span class="text-base-content/20">&middot;</span> v1.0.0 Lite
     </div>
   </aside>
 
   <!-- Main Layout -->
   <div class="lg:ml-64 flex flex-col min-h-screen">
     <!-- Top Navbar -->
-    <header class="sticky top-0 z-30 bg-base-100/80 backdrop-blur-md border-b border-base-200">
-      <div class="flex items-center justify-between h-16 px-4">
-        <div class="flex items-center gap-3">
-          <button class="lg:hidden btn btn-ghost btn-sm btn-square" @click="$store.app.sidebarOpen = !$store.app.sidebarOpen">
+    <header class="sticky top-0 z-30 bg-base-100/85 backdrop-blur-lg border-b border-base-200/80">
+      <div class="flex items-center justify-between h-14 px-4 lg:px-6">
+        <div class="flex items-center gap-3 min-w-0">
+          <button class="lg:hidden btn btn-ghost btn-sm btn-square" aria-label="Abrir men\u00fa lateral" @click="$store.app.sidebarOpen = !$store.app.sidebarOpen">
             <i class="bi bi-list text-xl"></i>
           </button>
-          <h1 class="text-lg font-bold truncate" x-text="$store.app.moduloActual ? window.MODULES?.[$store.app.moduloActual]?.titulo || $store.app.moduloActual : 'AHA POS'"></h1>
+          <h1 class="text-base lg:text-lg font-bold truncate" x-text="$store.app.moduloActual ? window.MODULES?.[$store.app.moduloActual]?.titulo || $store.app.moduloActual : 'AHA POS'"></h1>
+          <span x-show="$store.app.moduloActual" class="hidden sm:inline-flex text-[11px] font-medium text-base-content/35 uppercase tracking-wider px-2 py-0.5 rounded-full border border-base-200" x-text="$store.app.moduloActual"></span>
         </div>
-        <div class="flex items-center gap-2">
-          <button class="btn btn-ghost btn-sm btn-square" @click="$store.theme.mode = $store.theme.mode === 'light' ? 'dark' : $store.theme.mode === 'dark' ? 'emerald' : $store.theme.mode === 'emerald' ? 'autumn' : 'light'" title="Cambiar tema">
+        <div class="flex items-center gap-1">
+          <button class="btn btn-ghost btn-sm btn-square btn-spring" @click="$store.theme.mode = $store.theme.mode === 'light' ? 'dark' : $store.theme.mode === 'dark' ? 'emerald' : $store.theme.mode === 'emerald' ? 'autumn' : 'light'" title="Cambiar tema">
             <template x-if="$store.theme.mode === 'light'"><i class="bi bi-sun-fill text-lg"></i></template>
             <template x-if="$store.theme.mode === 'dark'"><i class="bi bi-moon-fill text-lg"></i></template>
             <template x-if="$store.theme.mode === 'emerald'"><i class="bi bi-gem text-lg"></i></template>
             <template x-if="$store.theme.mode === 'autumn'"><i class="bi bi-flower1 text-lg"></i></template>
           </button>
-          <button class="btn btn-ghost btn-sm btn-square" @click="window.Sync?.exportarBackup()" title="Sincronizar">
+          <button class="btn btn-ghost btn-sm btn-square btn-spring" @click="window.Sync?.exportarBackup()" title="Sincronizar">
             <i class="bi bi-arrow-repeat text-lg"></i>
           </button>
         </div>
@@ -201,12 +214,12 @@
   </div>
 
   <!-- FAB (mobile) -->
-  <button class="fab" id="fab-quick-add" x-data @click="window.dispatchEvent(new CustomEvent('fab-click'))">
+  <button class="fab" id="fab-quick-add" x-data aria-label="Acci\u00f3n r\u00e1pida" @click="window.dispatchEvent(new CustomEvent('fab-click'))">
     <i class="bi bi-plus-lg"></i>
   </button>
 
   <!-- Scroll-to-top -->
-  <button x-data="{ show: false }" x-init="window.addEventListener('scroll', function() { show = window.scrollY > 400; })" x-show="show" x-cloak @click="window.scrollTo({ top: 0, behavior: 'smooth' })" class="fixed bottom-24 right-4 z-40 w-10 h-10 rounded-xl bg-base-100 border border-base-200 shadow-lg flex items-center justify-center text-base-content/50 hover:text-base-content transition-all cursor-pointer">
+  <button x-data="{ show: false }" aria-label="Volver arriba" x-init="window.addEventListener('scroll', function() { show = window.scrollY > 400; })" x-show="show" x-cloak @click="window.scrollTo({ top: 0, behavior: 'smooth' })" class="fixed bottom-24 right-4 z-40 w-10 h-10 rounded-xl bg-base-100 border border-base-200 shadow-lg flex items-center justify-center text-base-content/50 hover:text-base-content transition-all cursor-pointer">
     <i class="bi bi-arrow-up"></i>
   </button>
 
@@ -232,8 +245,52 @@
   <!-- Toast Container -->
   <div id="toast-container" class="toast-container"></div>
 
-  <!-- Search Palette Teleport Target -->
-  <div id="search-palette-target"></div>
+  <!-- Search Palette -->
+  <div id="search-palette-target" x-data="searchPalette()" x-show="open" x-cloak @keydown="onKeydown">
+    <div class="fixed inset-0 z-[100] flex items-start justify-center pt-[12vh] sm:pt-[15vh]">
+      <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" @click="closePalette()"></div>
+      <div class="relative bg-base-100 rounded-2xl shadow-2xl border border-base-200 w-full max-w-lg mx-4 overflow-hidden animate-slide-up">
+        <div class="flex items-center gap-3 px-5 py-3.5 border-b border-base-200">
+          <i class="bi bi-search text-base-content/30 text-sm"></i>
+          <input type="text" x-model="query" @input="search()" placeholder="Buscar m\u00f3dulos o registros..." class="w-full bg-transparent border-none outline-none text-sm placeholder:text-base-content/30" x-ref="spInput">
+          <kbd class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-base-200 text-[10px] font-medium text-base-content/30 border border-base-300/50">
+            <i class="bi bi-command text-xs"></i>K
+          </kbd>
+        </div>
+        <div x-show="hasResults" class="max-h-72 overflow-y-auto p-2">
+          <template x-for="(item, i) in filtered" :key="i">
+            <div>
+              <div x-show="item.type === 'separator'" class="border-t border-base-200 my-1.5"></div>
+              <template x-if="item.type !== 'separator'">
+                <div @click="selectItem(item)" @mouseenter="selectedIdx = item._kIdx" :class="selectedIdx === item._kIdx ? 'bg-primary/10 border-primary/30' : 'hover:bg-base-200/70'" class="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-150 border border-transparent">
+                  <i :class="item.icon" class="text-base-content/30 text-lg w-6 text-center"></i>
+                  <div class="flex-1 min-w-0">
+                    <div class="text-sm font-medium truncate" x-text="item.title"></div>
+                    <div x-show="item.subtitle" class="text-[11px] text-base-content/40" x-text="item.subtitle"></div>
+                  </div>
+                  <i class="bi bi-chevron-right text-base-content/20 text-sm"></i>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+        <div x-show="!hasResults && query.length >= 2" class="p-8 text-center text-sm text-base-content/40">
+          <i class="bi bi-search text-2xl block mb-2 text-base-content/20"></i>
+          Sin resultados para &quot;<span class="font-medium text-base-content/60" x-text="query"></span>&quot;
+        </div>
+        <div x-show="!hasResults && !query" class="p-8 text-center text-sm text-base-content/30">
+          <i class="bi bi-grid-3x3-gap text-2xl block mb-2 opacity-30"></i>
+          Escribe para buscar o usa <kbd class="kbd kbd-xs">Enter</kbd> para navegar
+        </div>
+        <div class="px-5 py-2.5 border-t border-base-200/60 bg-base-200/30 flex items-center gap-3 text-[10px] text-base-content/25">
+          <span class="flex items-center gap-1"><kbd class="kbd kbd-xs px-1">&#8593;&#8595;</kbd> Navegar</span>
+          <span class="flex items-center gap-1"><kbd class="kbd kbd-xs px-1">&#8629;</kbd> Abrir</span>
+          <span class="flex items-center gap-1"><kbd class="kbd kbd-xs px-1">Esc</kbd> Cerrar</span>
+          <span class="ml-auto flex items-center gap-1"><kbd class="kbd kbd-xs px-1">&#8984;K</kbd> Buscar</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- ============ SCRIPTS ============ -->
 
@@ -263,6 +320,10 @@
       Alpine.store('badges', Object.assign({}, Alpine.store('badges') || {}));
     });
   </script>
+
+  <!-- Search palette (antes de Alpine para que alpine:init lo registre) -->
+  <script src="core/search-palette.js"></script>
+
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dexie@3.2.6/dist/dexie.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
@@ -276,7 +337,6 @@
   <script src="core/ui.js"></script>
   <script src="core/theme.js"></script>
   <script src="core/app.js"></script>
-  <script src="core/search-palette.js"></script>
   <script src="core/file-store.js"></script>
   <script src="core/sync.js"></script>
   <script src="core/network.js"></script>
