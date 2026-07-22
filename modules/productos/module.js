@@ -142,26 +142,26 @@
         '<div class="space-y-4">' +
         '  <label class="form-control w-full">' +
         '    <span class="label-text">Nombre del producto *</span>' +
-        '    <input type="text" name="nombre" x-model="form.nombre" class="input input-bordered w-full" value="' + this._escAttr(isNombre) + '" required>' +
+        '    <input type="text" name="nombre" class="input input-bordered w-full" value="' + this._escAttr(isNombre) + '" required>' +
         '  </label>' +
         '  <label class="form-control w-full">' +
         '    <span class="label-text">C\u00f3digo de barras</span>' +
-        '    <input type="text" name="codigoBarras" x-model="form.codigoBarras" class="input input-bordered w-full" value="' + this._escAttr(isCodigo) + '">' +
+        '    <input type="text" name="codigoBarras" class="input input-bordered w-full" value="' + this._escAttr(isCodigo) + '">' +
         '  </label>' +
         '  <label class="form-control w-full">' +
         '    <span class="label-text">Categor\u00eda</span>' +
-        '    <select name="categoriaId" x-model="form.categoriaId" class="select select-bordered w-full">' +
+        '    <select name="categoriaId" class="select select-bordered w-full">' +
         catOptions +
         '    </select>' +
         '  </label>' +
         '  <div class="flex gap-3">' +
         '    <label class="form-control flex-1">' +
         '      <span class="label-text">Precio *</span>' +
-        '      <input type="number" name="precio" x-model="form.precio" step="0.01" min="0" class="input input-bordered w-full" value="' + isPrecio + '" required>' +
+        '      <input type="number" name="precio" step="0.01" min="0" class="input input-bordered w-full" value="' + isPrecio + '" required>' +
         '    </label>' +
         '    <label class="form-control w-28">' +
         '      <span class="label-text">Stock</span>' +
-        '      <input type="number" name="stock" x-model="form.stock" step="1" min="0" class="input input-bordered w-full" value="' + isStock + '">' +
+        '      <input type="number" name="stock" step="1" min="0" class="input input-bordered w-full" value="' + isStock + '">' +
         '    </label>' +
         '  </div>' +
         '</div>';

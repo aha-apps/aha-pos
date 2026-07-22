@@ -11,9 +11,7 @@ window.appRouter = {
     if (alpineReady) Alpine.stopObservingMutations();
     el.innerHTML = html;
     if (alpineReady) {
-      Array.from(el.children).forEach(function (child) {
-        Alpine.initTree(child);
-      });
+      Alpine.initTree(el);
       Alpine.startObservingMutations();
     }
   },
