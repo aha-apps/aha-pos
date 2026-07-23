@@ -29,8 +29,12 @@
         '<template x-for="c in categorias" :key="c.id">' +
         '<option :value="c.id" x-text="c.nombre"></option>' +
         '</template></select>' +
+        '<div class="flex gap-1">' +
         '<button @click="abrirFormProducto()" class="btn btn-primary btn-sm gap-1.5">' +
         '<i class="bi bi-plus-lg text-sm"></i><span class="hidden sm:inline">Agregar</span></button>' +
+        '<button @click="gestionarCategorias()" class="btn btn-ghost btn-sm btn-square" title="Gestionar categor\u00edas">' +
+        '<i class="bi bi-tags text-sm"></i></button>' +
+        '</div>' +
         '</div>' +
         '<div class="flex items-center gap-2 w-full sm:w-auto sm:ml-auto">' +
         '<span class="text-xs text-base-content/50" x-text="(catFiltro || searchQuery ? productosFiltrados.length + \' de \' : \'\') + productos.length + \' producto\' + (productos.length !== 1 ? \'s\' : \'\')"></span>' +
@@ -259,6 +263,180 @@
       }
     },
 
+    _catDialogId: null,
+
+    async gestionarCategorias() {
+      await this.cargarCategorias();
+      var id = 'cat-mgmt-' + Date.now();
+      this._catDialogId = id;
+      var rows = '';
+      for (var i = 0; i < this.categorias.length; i++) {
+        var c = this.categorias[i];
+        var color = c.color || '#6366f1';
+        rows +=
+          '<tr>' +
+          '<td><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:' + color + ';border:2px solid ' + color + '40"></span></td>' +
+          '<td class="font-medium text-sm">' + this._escAttr(c.nombre) + '</td>' +
+          '<td class="text-xs text-base-content/40 font-mono" x-text="c.id">' + c.id.slice(0, 8) + '</td>' +
+          '<td class="text-right"><div class="flex gap-1 justify-end">' +
+          '<button class="btn btn-ghost btn-xs btn-square" data-edit="' + c.id + '" title="Editar"><i class="bi bi-pencil text-sm"></i></button>' +
+          '<button class="btn btn-ghost btn-xs btn-square text-error" data-delete="' + c.id + '" title="Eliminar"><i class="bi bi-trash text-sm"></i></button>' +
+          '</div></td></tr>';
+      }
+      var container = document.createElement('div');
+      container.innerHTML =
+        '<dialog id="' + id + '" class="modal">' +
+        '  <div class="modal-box w-11/12 max-w-md">' +
+        '    <form method="dialog"><button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">\u2715</button></form>' +
+        '    <div class="flex items-center justify-between mb-4">' +
+        '      <h3 class="font-bold text-lg">Gestionar Categor\u00edas</h3>' +
+        '      <button class="btn btn-primary btn-sm gap-1" data-add-cat>' +
+        '        <i class="bi bi-plus-lg"></i> Agregar' +
+        '      </button>' +
+        '    </div>' +
+        '    <table class="table table-sm w-full">' +
+        '      <thead><tr><th class="w-8"></th><th>Nombre</th><th>ID</th><th class="w-24 text-right">Acciones</th></tr></thead>' +
+        '      <tbody>' + (rows || '<tr><td colspan="4" class="text-center text-base-content/40 text-sm py-6">No hay categor\u00edas. Crea la primera.</td></tr>') + '</tbody>' +
+        '    </table>' +
+        '  </div>' +
+        '  <form method="dialog" class="modal-backdrop"><button>cerrar</button></form>' +
+        '</dialog>';
+      document.body.appendChild(container);
+      var dialog = document.getElementById(id);
+      dialog.showModal();
+      dialog.querySelector('[data-add-cat]').onclick = function () { Productos._addCatClick(); };
+      dialog.querySelectorAll('[data-edit]').forEach(function (btn) {
+        btn.onclick = function () { Productos._editCatClick(this.getAttribute('data-edit')); };
+      });
+      dialog.querySelectorAll('[data-delete]').forEach(function (btn) {
+        btn.onclick = function () { Productos._delCatClick(this.getAttribute('data-delete')); };
+      });
+      dialog.addEventListener('close', function () { setTimeout(function () { container.remove(); Productos._catDialogId = null; }, 300); });
+    },
+
+    _buildCatTable() {
+      var rows = '';
+      for (var i = 0; i < this.categorias.length; i++) {
+        var c = this.categorias[i];
+        var color = c.color || '#6366f1';
+        rows +=
+          '<tr>' +
+          '<td><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:' + color + ';border:2px solid ' + color + '40"></span></td>' +
+          '<td class="font-medium text-sm">' + this._escAttr(c.nombre) + '</td>' +
+          '<td class="text-xs text-base-content/40 font-mono">' + c.id.slice(0, 8) + '</td>' +
+          '<td class="text-right"><div class="flex gap-1 justify-end">' +
+          '<button class="btn btn-ghost btn-xs btn-square" data-edit="' + c.id + '" title="Editar"><i class="bi bi-pencil text-sm"></i></button>' +
+          '<button class="btn btn-ghost btn-xs btn-square text-error" data-delete="' + c.id + '" title="Eliminar"><i class="bi bi-trash text-sm"></i></button>' +
+          '</div></td></tr>';
+      }
+      return rows || '<tr><td colspan="4" class="text-center text-base-content/40 text-sm py-6">No hay categor\u00edas. Crea la primera.</td></tr>';
+    },
+
+    _refreshCatDialog() {
+      var id = this._catDialogId;
+      if (!id) return;
+      var dialog = document.getElementById(id);
+      if (!dialog) return;
+      var tbody = dialog.querySelector('table tbody');
+      if (!tbody) return;
+      // Re-bind events after replacing content
+      tbody.innerHTML = this._buildCatTable();
+      dialog.querySelectorAll('[data-edit]').forEach(function (btn) {
+        btn.onclick = function () { Productos._editCatClick(this.getAttribute('data-edit')); };
+      });
+      dialog.querySelectorAll('[data-delete]').forEach(function (btn) {
+        btn.onclick = function () { Productos._delCatClick(this.getAttribute('data-delete')); };
+      });
+    },
+
+    async _addCatClick() {
+      var html =
+        '<div class="space-y-4">' +
+        '  <label class="form-control w-full">' +
+        '    <span class="label-text">Nombre de la categor\u00eda *</span>' +
+        '    <input type="text" name="nombre" class="input input-bordered w-full" required>' +
+        '  </label>' +
+        '  <label class="form-control w-full">' +
+        '    <span class="label-text">Color</span>' +
+        '    <input type="color" name="color" class="input input-bordered w-full h-10" value="#6366f1">' +
+        '  </label>' +
+        '</div>';
+      await UI.modalForm('Nueva Categor\u00eda', html, async function (data) {
+        if (!data.nombre || data.nombre.trim() === '') {
+          UI.toast('El nombre es obligatorio', 'error');
+          return;
+        }
+        await Productos._guardarCategoria({
+          id: window.uuid(),
+          nombre: data.nombre.trim(),
+          color: data.color || '#6366f1',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+      });
+    },
+
+    async _editCatClick(id) {
+      var cat = await db.categorias.get(id);
+      if (!cat) { UI.toast('Categor\u00eda no encontrada', 'error'); return; }
+      var html =
+        '<div class="space-y-4">' +
+        '  <label class="form-control w-full">' +
+        '    <span class="label-text">Nombre de la categor\u00eda *</span>' +
+        '    <input type="text" name="nombre" class="input input-bordered w-full" value="' + this._escAttr(cat.nombre) + '" required>' +
+        '  </label>' +
+        '  <label class="form-control w-full">' +
+        '    <span class="label-text">Color</span>' +
+        '    <input type="color" name="color" class="input input-bordered w-full h-10" value="' + (cat.color || '#6366f1') + '">' +
+        '  </label>' +
+        '</div>';
+      await UI.modalForm('Editar Categor\u00eda', html, async function (data) {
+        if (!data.nombre || data.nombre.trim() === '') {
+          UI.toast('El nombre es obligatorio', 'error');
+          return;
+        }
+        cat.nombre = data.nombre.trim();
+        cat.color = data.color || '#6366f1';
+        cat.updatedAt = new Date().toISOString();
+        await Productos._guardarCategoria(cat);
+      });
+    },
+
+    async _delCatClick(id) {
+      var cat = await db.categorias.get(id);
+      if (!cat) return;
+      var ok = await UI.confirm('\u00bfEliminar la categor\u00eda "' + cat.nombre + '"?\nLos productos con esta categor\u00eda quedar\u00e1n sin categor\u00eda.', 'Eliminar Categor\u00eda');
+      if (!ok) return;
+      try {
+        var conProductos = await db.productos.where('categoriaId').equals(id).toArray();
+        for (var i = 0; i < conProductos.length; i++) {
+          conProductos[i].categoriaId = '';
+          await db.productos.put(conProductos[i]);
+        }
+        await db.categorias.delete(id);
+        UI.toast('Categor\u00eda eliminada', 'success');
+        await this.cargarCategorias();
+        this._refreshCatDialog();
+        var comp = Alpine.$data(document.querySelector('[x-data="productosComponent()"]'));
+        if (comp) { comp.categorias = this.categorias; comp.load(); }
+      } catch (e) {
+        UI.toast('Error al eliminar categor\u00eda: ' + e.message, 'error');
+      }
+    },
+
+    async _guardarCategoria(cat) {
+      try {
+        await db.categorias.put(cat);
+        UI.toast('Categor\u00eda guardada', 'success');
+        await Productos.cargarCategorias();
+        Productos._refreshCatDialog();
+        var comp = Alpine.$data(document.querySelector('[x-data="productosComponent()"]'));
+        if (comp) { comp.categorias = Productos.categorias; comp.load(); }
+      } catch (e) {
+        UI.toast('Error al guardar categor\u00eda: ' + e.message, 'error');
+      }
+    },
+
     _escAttr(str) {
       if (typeof str !== 'string') return '';
       return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -329,6 +507,13 @@
       sortArrow(col) {
         if (this.sortBy !== col) return 'bi bi-arrow-down-up opacity-30';
         return this.sortAsc ? 'bi bi-sort-up' : 'bi bi-sort-down';
+      },
+
+      async gestionarCategorias() {
+        var self = this;
+        await self.mod.gestionarCategorias();
+        // Refresh local categories after dialog closes
+        self.categorias = self.mod.categorias;
       },
 
       async abrirFormProducto() {
