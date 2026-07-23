@@ -130,4 +130,11 @@ document.addEventListener('alpine:init', function () {
       }
     };
   });
+
+  window.toggleSearch = function () {
+    var el = document.querySelector('#search-palette-target');
+    if (!el) return;
+    var data = Alpine.$data(el);
+    if (data && data.openPalette) data.openPalette();
+  };
 });

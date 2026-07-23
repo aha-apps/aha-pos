@@ -118,7 +118,7 @@
                   '<div class="text-sm font-bold tabular-nums" x-text="\'$ \' + (item.precio * item.cantidad - (item.descuento || 0)).toFixed(2)"></div>' +
                   '<div x-show="item.descuento" class="text-[10px] text-error">-$ <span x-text="item.descuento.toFixed(2)"></span></div>' +
                 '</div>' +
-                '<button @click="quitarDelCarrito(idx)" class="btn btn-ghost btn-xs btn-circle text-base-content/20 hover:text-error opacity-0 group-hover:opacity-100 transition-opacity absolute top-1 right-1">&times;</button>' +
+                '<button @click="quitarDelCarrito(idx)" class="btn btn-ghost btn-xs btn-circle text-base-content/30 hover:text-error opacity-30 hover:opacity-100 transition-opacity absolute top-1 right-1">&times;</button>' +
               '</div>' +
             '</template>' +
           '</div>' +

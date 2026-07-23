@@ -229,8 +229,13 @@
       return total;
     },
 
-    confirmarArqueo: function () {
-      this.totalReal = this._calcularTotalReal();
+    confirmarArqueo: async function () {
+      var totalContado = this._calcularTotalReal();
+      if (totalContado === 0) {
+        var ok = await UI.confirm('\u00bfNing\u00fan billete o moneda registrado? El arqueo quedar\u00e1 con $0.00.', 'Arqueo vac\u00edo');
+        if (!ok) return;
+      }
+      this.totalReal = totalContado;
       this.diferencia = this.totalReal - this.totalEsperado;
       this.arqueoCompletado = true;
       this.render();
@@ -417,12 +422,12 @@
         '<button class="btn btn-primary btn-sm gap-1.5" @click="iniciarArqueo()"><i class="bi bi-calculator"></i> Iniciar Arqueo</button>' +
         '</div></div>' +
         '<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">' +
-        '<div class="card-ds p-4"><div class="kpi-label">Ventas Hoy</div><div class="kpi-value text-primary mt-1" x-text="ventasHoy.length"></div><div class="text-xs text-base-content/50 mt-1" x-text="UI.formatCurrency(ventasHoy.reduce(function(s,v){return s+(v.total||0)},0))"></div></div>' +
-        '<div class="card-ds p-4"><div class="kpi-label">Gastos</div><div class="kpi-value text-warning mt-1" x-text="gastos.length"></div><div class="text-xs text-base-content/50 mt-1" x-text="UI.formatCurrency(gastos.reduce(function(s,g){return s+(g.monto||0)},0))"></div></div>' +
-        '<div class="card-ds p-4"><div class="kpi-label">Total Esperado</div><div class="kpi-value text-secondary mt-1" x-text="UI.formatCurrency(totalEsperado)"></div><div class="text-xs text-base-content/50 mt-1">Ventas - Gastos</div></div>' +
-        '<div class="card-ds p-4"><div class="kpi-label">Transacciones</div><div class="kpi-value mt-1" x-text="ventasHoy.length + gastos.length"></div><div class="text-xs text-base-content/50 mt-1">Ventas + Gastos</div></div>' +
+        '<div class="card bg-base-100 border border-base-200 rounded-xl p-4"><div class="kpi-label">Ventas Hoy</div><div class="kpi-value text-primary mt-1" x-text="ventasHoy.length"></div><div class="text-xs text-base-content/50 mt-1" x-text="UI.formatCurrency(ventasHoy.reduce(function(s,v){return s+(v.total||0)},0))"></div></div>' +
+        '<div class="card bg-base-100 border border-base-200 rounded-xl p-4"><div class="kpi-label">Gastos</div><div class="kpi-value text-warning mt-1" x-text="gastos.length"></div><div class="text-xs text-base-content/50 mt-1" x-text="UI.formatCurrency(gastos.reduce(function(s,g){return s+(g.monto||0)},0))"></div></div>' +
+        '<div class="card bg-base-100 border border-base-200 rounded-xl p-4"><div class="kpi-label">Total Esperado</div><div class="kpi-value text-secondary mt-1" x-text="UI.formatCurrency(totalEsperado)"></div><div class="text-xs text-base-content/50 mt-1">Ventas - Gastos</div></div>' +
+        '<div class="card bg-base-100 border border-base-200 rounded-xl p-4"><div class="kpi-label">Transacciones</div><div class="kpi-value mt-1" x-text="ventasHoy.length + gastos.length"></div><div class="text-xs text-base-content/50 mt-1">Ventas + Gastos</div></div>' +
         '</div>' +
-        '<div class="card-ds p-5 mb-6"><div class="flex items-center justify-between mb-4"><h3 class="font-semibold">Gastos Menores</h3><button class="btn btn-ghost btn-sm gap-1.5" @click="agregarGasto()"><i class="bi bi-plus-lg"></i> Agregar</button></div>' +
+        '<div class="card bg-base-100 border border-base-200 rounded-xl p-5 mb-6"><div class="flex items-center justify-between mb-4"><h3 class="font-semibold">Gastos Menores</h3><button class="btn btn-ghost btn-sm gap-1.5" @click="agregarGasto()"><i class="bi bi-plus-lg"></i> Agregar</button></div>' +
         '<template x-if="gastos.length === 0"><div class="text-center py-6 text-base-content/40 text-sm"><i class="bi bi-receipt text-2xl block mb-2"></i>No hay gastos registrados en este corte</div></template>' +
         '<template x-if="gastos.length > 0"><div class="overflow-x-auto"><table class="table table-sm"><thead><tr><th>Concepto</th><th class="text-right">Monto</th><th class="text-right">Hora</th><th class="w-10"></th></tr></thead><tbody>' +
         '<template x-for="g in gastos" :key="g.id"><tr>' +
@@ -433,7 +438,7 @@
         '</tr></template></tbody></table></div></template>' +
         '<div class="flex justify-between items-center mt-3 pt-3 border-t border-base-200"><span class="text-sm font-medium">Total Gastos</span><span class="font-bold text-warning" x-text="UI.formatCurrency(gastos.reduce(function(s,g){return s+(g.monto||0)},0))"></span></div>' +
         '</div>' +
-        '<template x-if="cortes.length > 0"><div class="card-ds p-5"><h3 class="font-semibold mb-4">\u00daltimos Cortes</h3><div class="overflow-x-auto"><table class="table table-sm"><thead><tr><th>Folio</th><th>Apertura</th><th>Cierre</th><th class="text-right">Esperado</th><th class="text-right">Real</th><th class="text-right">Diferencia</th></tr></thead><tbody>' +
+        '<template x-if="cortes.length > 0"><div class="card bg-base-100 border border-base-200 rounded-xl p-5"><h3 class="font-semibold mb-4">\u00daltimos Cortes</h3><div class="overflow-x-auto"><table class="table table-sm"><thead><tr><th>Folio</th><th>Apertura</th><th>Cierre</th><th class="text-right">Esperado</th><th class="text-right">Real</th><th class="text-right">Diferencia</th></tr></thead><tbody>' +
         '<template x-for="c in cortes.slice(0, 10)" :key="c.id"><tr>' +
         '<td class="text-sm font-medium" x-text="c.folio || \'\u2014\'"></td>' +
         '<td class="text-sm text-base-content/50" x-text="UI.formatDate(c.apertura)"></td>' +
@@ -447,7 +452,7 @@
         '<template x-if="corteActual && enArqueo && !arqueoCompletado"><div>' +
         '<div class="flex items-center justify-between mb-6"><div><h2 class="text-xl font-bold">Arqueo de Caja</h2><p class="text-sm text-base-content/50 mt-1">Cuenta el efectivo en caja registrando la cantidad de cada denominaci\u00f3n</p></div>' +
         '<button class="btn btn-ghost btn-sm" @click="cancelarArqueo()"><i class="bi bi-x-lg"></i> Cancelar</button></div>' +
-        '<div class="card-ds p-5 mb-6"><div class="space-y-2">' +
+        '<div class="card bg-base-100 border border-base-200 rounded-xl p-5 mb-6"><div class="space-y-2">' +
         '<template x-for="(den, idx) in denominaciones" :key="idx">' +
         '<div class="flex items-center gap-3 p-2 rounded-xl hover:bg-base-200/50 transition-colors">' +
         '<div class="flex-1 min-w-0"><div class="text-sm font-medium" x-text="den.nombre"></div></div>' +
@@ -457,7 +462,7 @@
         '<button class="btn btn-ghost btn-xs btn-square" @click="actualizarDenominacion(idx, den.cantidad + 1)"><i class="bi bi-plus"></i></button>' +
         '</div><div class="text-sm font-bold text-right w-24" x-text="UI.formatCurrency(den.valor * den.cantidad)"></div>' +
         '</div></template></div></div>' +
-        '<div class="card-ds p-5 mb-6"><div class="flex justify-between items-center"><span class="font-semibold">Total Contado</span><span class="text-2xl font-bold text-primary" x-text="UI.formatCurrency(totalReal)"></span></div>' +
+        '<div class="card bg-base-100 border border-base-200 rounded-xl p-5 mb-6"><div class="flex justify-between items-center"><span class="font-semibold">Total Contado</span><span class="text-2xl font-bold text-primary" x-text="UI.formatCurrency(totalReal)"></span></div>' +
         '<div class="flex justify-between items-center mt-2"><span class="text-sm text-base-content/50">Total Esperado</span><span class="text-lg font-semibold" x-text="UI.formatCurrency(totalEsperado)"></span></div>' +
         '<div class="flex justify-between items-center mt-2 pt-2 border-t border-base-200"><span class="text-sm font-medium">Diferencia</span>' +
         '<span class="text-lg font-bold" :class="(totalReal - totalEsperado) >= 0 ? \'text-success\' : \'text-error\'" x-text="UI.formatCurrency(totalReal - totalEsperado)"></span></div></div>' +
@@ -467,7 +472,7 @@
         '<template x-if="corteActual && arqueoCompletado"><div>' +
         '<div class="flex items-center justify-between mb-6"><div><h2 class="text-xl font-bold">Arqueo Completado</h2><p class="text-sm text-base-content/50 mt-1">Revisa el resumen antes de cerrar el corte</p></div>' +
         '<button class="btn btn-ghost btn-sm" @click="cancelarArqueo()"><i class="bi bi-pencil"></i> Corregir</button></div>' +
-        '<div class="card-ds p-5 mb-6"><div class="space-y-1 mb-4">' +
+        '<div class="card bg-base-100 border border-base-200 rounded-xl p-5 mb-6"><div class="space-y-1 mb-4">' +
         '<template x-for="den in denominaciones" :key="den.nombre"><template x-if="den.cantidad > 0">' +
         '<div class="flex justify-between text-sm py-1"><span class="text-base-content/60" x-text="den.cantidad + \' x \' + den.nombre"></span><span class="font-medium" x-text="UI.formatCurrency(den.valor * den.cantidad)"></span></div>' +
         '</template></template></div>' +

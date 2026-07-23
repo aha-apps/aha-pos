@@ -33,25 +33,25 @@
       // KPI Cards
       html += '<div class="grid grid-cols-2 md:grid-cols-4 gap-4">';
 
-      html += '  <div class="card-ds p-4 stagger-item" style="animation-delay:0s">';
+      html += '  <div class="card bg-base-100 border border-base-200 rounded-xl p-4 stagger-item" style="animation-delay:0s">';
       html += '    <div class="kpi-label">Ventas Hoy</div>';
       html += '    <div class="kpi-value text-primary mt-1" id="stat-ventas-hoy-valor">0</div>';
       html += '    <div class="text-xs text-base-content/50 mt-1" id="stat-ventas-hoy-total">$0</div>';
       html += '  </div>';
 
-      html += '  <div class="card-ds p-4 stagger-item" style="animation-delay:0.05s">';
+      html += '  <div class="card bg-base-100 border border-base-200 rounded-xl p-4 stagger-item" style="animation-delay:0.05s">';
       html += '    <div class="kpi-label">Ventas Esta Semana</div>';
       html += '    <div class="kpi-value text-secondary mt-1" id="stat-ventas-semana-valor">0</div>';
       html += '    <div class="text-xs text-base-content/50 mt-1" id="stat-ventas-semana-total">$0</div>';
       html += '  </div>';
 
-      html += '  <div class="card-ds p-4 stagger-item" style="animation-delay:0.1s">';
+      html += '  <div class="card bg-base-100 border border-base-200 rounded-xl p-4 stagger-item" style="animation-delay:0.1s">';
       html += '    <div class="kpi-label">Ventas Este Mes</div>';
       html += '    <div class="kpi-value text-accent mt-1" id="stat-ventas-mes-valor">0</div>';
       html += '    <div class="text-xs text-base-content/50 mt-1" id="stat-ventas-mes-total">$0</div>';
       html += '  </div>';
 
-      html += '  <div class="card-ds p-4 stagger-item" style="animation-delay:0.15s">';
+      html += '  <div class="card bg-base-100 border border-base-200 rounded-xl p-4 stagger-item" style="animation-delay:0.15s">';
       html += '    <div class="kpi-label">Stock Bajo</div>';
       html += '    <div class="kpi-value text-error mt-1" id="stat-stock-bajo">0</div>';
       html += '    <div class="text-xs text-base-content/50 mt-1">Productos con stock &lt; 5</div>';
@@ -69,14 +69,14 @@
       // Charts row 1
       html += '<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">';
 
-      html += '  <div class="card-ds p-4">';
+      html += '  <div class="card bg-base-100 border border-base-200 rounded-xl p-4">';
       html += '    <div class="kpi-label mb-3">Ventas por Día</div>';
       html += '    <div class="relative" style="height:260px">';
       html += '      <canvas id="chart-ventas-diarias"></canvas>';
       html += '    </div>';
       html += '  </div>';
 
-      html += '  <div class="card-ds p-4">';
+      html += '  <div class="card bg-base-100 border border-base-200 rounded-xl p-4">';
       html += '    <div class="kpi-label mb-3">Productos Más Vendidos</div>';
       html += '    <div class="relative" style="height:260px">';
       html += '      <canvas id="chart-productos-top"></canvas>';
@@ -86,7 +86,7 @@
       html += '</div>';
 
       // Chart row 2
-      html += '<div class="card-ds p-4 max-w-md mx-auto">';
+      html += '<div class="card bg-base-100 border border-base-200 rounded-xl p-4 max-w-md mx-auto">';
       html += '  <div class="kpi-label mb-3">Ventas por Método de Pago</div>';
       html += '  <div class="relative" style="height:220px">';
       html += '    <canvas id="chart-metodo-pago"></canvas>';

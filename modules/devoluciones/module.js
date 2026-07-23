@@ -253,7 +253,7 @@
 
         '<!-- Step 1: Seleccionar Venta -->' +
         '<div x-show="paso === 1">' +
-        '<div class="card-ds p-5">' +
+        '<div class="card bg-base-100 border border-base-200 rounded-xl p-5">' +
         '<label class="form-control w-full mb-4">' +
         '<span class="label-text mb-1 font-medium">Buscar venta por folio</span>' +
         '<div class="relative">' +
@@ -277,8 +277,11 @@
         '</div>' +
         '</div>' +
         '</template>' +
-        '<template x-if="ventasFiltradas.length === 0">' +
-        '<div class="text-center py-8 text-base-content/40 text-sm">No se encontraron ventas. Realiza una venta primero.</div>' +
+        '<template x-if="ventasFiltradas.length === 0 && !busqueda">' +
+        '<div class="text-center py-8 text-base-content/40 text-sm"><i class="bi bi-inbox text-2xl block mb-2 opacity-30"></i>No hay ventas registradas. Realiza una venta primero.</div>' +
+        '</template>' +
+        '<template x-if="ventasFiltradas.length === 0 && busqueda">' +
+        '<div class="text-center py-8 text-base-content/40 text-sm"><i class="bi bi-search text-2xl block mb-2 opacity-30"></i>Ninguna venta coincide con <span class="font-medium" x-text="\'\\u201C\' + busqueda + \'\\u201D\'"></span></div>' +
         '</template>' +
         '</div>' +
         '</div>' +
@@ -286,7 +289,7 @@
 
         '<!-- Step 2: Seleccionar Productos -->' +
         '<div x-show="paso === 2" x-cloak>' +
-        '<div class="card-ds p-5">' +
+        '<div class="card bg-base-100 border border-base-200 rounded-xl p-5">' +
         '<div class="flex items-center justify-between mb-4">' +
         '<div><div class="font-semibold">Productos de la venta</div>' +
         '<div class="text-xs text-base-content/50" x-text="ventaSel ? ventaSel.folio || ventaSel.id.slice(0,8) : \'\'"></div></div>' +
@@ -315,7 +318,7 @@
 
         '<!-- Step 3: Detalles de la Devoluci\u00f3n -->' +
         '<div x-show="paso === 3" x-cloak>' +
-        '<div class="card-ds p-5">' +
+        '<div class="card bg-base-100 border border-base-200 rounded-xl p-5">' +
         '<div class="font-semibold mb-4">Detalles de la devoluci\u00f3n</div>' +
 
         '<div class="space-y-3 mb-5">' +
@@ -364,7 +367,7 @@
 
         '<!-- Step 4: Confirmar y Guardar -->' +
         '<div x-show="paso === 4" x-cloak>' +
-        '<div class="card-ds p-5">' +
+        '<div class="card bg-base-100 border border-base-200 rounded-xl p-5">' +
         '<div class="font-semibold mb-4">Confirmar devoluci\u00f3n</div>' +
 
         '<div class="bg-base-200/50 rounded-xl p-4 mb-4 space-y-2">' +
