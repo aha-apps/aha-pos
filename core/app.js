@@ -1,28 +1,8 @@
-// INTERCEPTOR: detecta QUIEN setea location.hash via __defineSetter__
-(function(){
-  try {
-    var _get = window.location.__lookupGetter__('hash');
-    var _set = window.location.__lookupSetter__('hash');
-    if (typeof _set === 'function') {
-      window.location.__defineGetter__('hash', function() { return _get.call(window.location); });
-      window.location.__defineSetter__('hash', function(v) {
-        console.log('[HASH] ⚡ SET por codigo JS (previo=' + _get.call(window.location) + ' -> nuevo=' + v + ')');
-        console.trace('[HASH] Stack del SET:');
-        _set.call(window.location, v);
-      });
-      console.log('[HASH] Interceptor ACTIVO');
-    } else {
-      console.warn('[HASH] __lookupSetter no retorno funcion');
-    }
-  } catch(e) {
-    console.warn('[HASH] Fallo interceptor:', e);
-  }
-})();
-
 window.appRouter = {
   _current: null,
   _modules: {},
   _navigatingTo: null,
+  _lastHashChange: 0,
 
   // Helper: inject HTML into module-content and initialize Alpine on new nodes.
   // MutationObserver is paused and old tree destroyed to prevent double-init.
@@ -79,7 +59,6 @@ window.appRouter = {
   _onHashChange() {
     // Debounce: ignorar hashchange si ocurrio hace menos de 300ms (frena cascade)
     var now = Date.now();
-    console.log('[router] _onHashChange debounce: last=' + this._lastHashChange + ' diff=' + (this._lastHashChange ? (now - this._lastHashChange) : 'N/A') + 'ms this=' + (typeof this));
     if (this._lastHashChange && (now - this._lastHashChange) < 300) {
       console.log('[router] _onHashChange IGNORADO por debounce (last=' + (now - this._lastHashChange) + 'ms)');
       return;
