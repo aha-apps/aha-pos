@@ -1,8 +1,23 @@
-// WRAPPER: todo seteo de hash pasa por aca para trace
-var _setHash = function(h) {
-  console.trace('[router] ⚡ _setHash("' + h + '")');
-  location.hash = h;
-};
+// INTERCEPTOR: detecta QUIEN setea location.hash via __defineSetter__
+(function(){
+  try {
+    var _get = window.location.__lookupGetter__('hash');
+    var _set = window.location.__lookupSetter__('hash');
+    if (typeof _set === 'function') {
+      window.location.__defineGetter__('hash', function() { return _get.call(window.location); });
+      window.location.__defineSetter__('hash', function(v) {
+        console.log('[HASH] ⚡ SET por codigo JS (previo=' + _get.call(window.location) + ' -> nuevo=' + v + ')');
+        console.trace('[HASH] Stack del SET:');
+        _set.call(window.location, v);
+      });
+      console.log('[HASH] Interceptor ACTIVO');
+    } else {
+      console.warn('[HASH] __lookupSetter no retorno funcion');
+    }
+  } catch(e) {
+    console.warn('[HASH] Fallo interceptor:', e);
+  }
+})();
 
 window.appRouter = {
   _current: null,
@@ -62,17 +77,23 @@ window.appRouter = {
   },
 
   _onHashChange() {
-    console.trace('[router] _onHashChange hash="' + location.hash.slice(1) + '"');
-    // Si ya hay una navegacion en curso, ignorar (evita cascade de hashchange)
+    // Debounce: ignorar hashchange si ocurrio hace menos de 300ms (frena cascade)
+    var now = Date.now();
+    if (this._lastHashChange && (now - this._lastHashChange) < 300) {
+      console.log('[router] _onHashChange IGNORADO por debounce (last=' + (now - this._lastHashChange) + 'ms)');
+      return;
+    }
+    this._lastHashChange = now;
+    // Si ya hay navegacion en curso, ignorar
     if (this._navigatingTo) {
-      console.log('[router]  -> ignorado, navegando a ' + this._navigatingTo);
+      console.log('[router] _onHashChange IGNORADO navegando a ' + this._navigatingTo);
       return;
     }
     Alpine.store('app').sidebarOpen = false;
     var hash = location.hash.slice(1).replace(/^\//, '') || '';
     var parts = hash.split('/');
     var moduleId = parts[0] || '';
-    console.log('[router]   -> procesando moduleId="' + moduleId + '"');
+    console.log('[router] _onHashChange hash="' + hash + '" moduleId="' + moduleId + '"');
     var params = parts.slice(1).join('/');
     if (moduleId && this._modules[moduleId]) {
       this.navigate(moduleId, params, true);
@@ -136,7 +157,7 @@ window.appRouter = {
         if (typeof html === 'string') self.refreshContent(html);
         self._current = mod;
         store.moduloActual = id;
-        if (!replace) _setHash(id + (params ? '/' + params : ''));
+        if (!replace) location.hash = id + (params ? '/' + params : '');
         Alpine.store('loading').visible = false;
         // Process queued navigation
         if (self._pendingNav) {
