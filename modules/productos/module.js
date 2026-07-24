@@ -83,7 +83,10 @@
         '</tr></thead><tbody>' +
         '<template x-for="(p, i) in productosFiltrados" :key="p.id">' +
         '<tr class="hover" :style="\'animation-delay:\' + (i * 30) + \'ms\'">' +
-        '<td><div class="avatar placeholder"><div class="w-9 rounded-lg bg-base-200 text-base-content/40"><i class="bi bi-box text-lg"></i></div></div></td>' +
+        '<td><div class="flex items-center gap-2">' +
+        '<img x-show="p.imagen" :src="p.imagen" class="w-9 h-9 rounded-lg object-cover" />' +
+        '<div x-show="!p.imagen" class="w-9 h-9 rounded-lg bg-base-200 flex items-center justify-center text-base-content/40"><i class="bi bi-box text-lg"></i></div>' +
+        '</div></td>' +
         '<td><div class="font-medium text-sm" x-text="p.nombre"></div></td>' +
         '<td class="hidden md:table-cell"><span class="text-sm text-base-content/60 font-mono" x-text="p.codigoBarras || \'\u2014\'"></span></td>' +
         '<td class="hidden md:table-cell">' +
@@ -126,6 +129,7 @@
       var isCategoriaId = '';
       var isPrecio = '';
       var isStock = '';
+      var isImagen = '';
 
       if (editando) {
         isNombre = item.nombre || '';
@@ -133,6 +137,7 @@
         isCategoriaId = item.categoriaId || '';
         isPrecio = item.precio || 0;
         isStock = item.stock || 0;
+        isImagen = item.imagen || '';
       }
 
       var catOptions = '<option value="">Sin categor\u00eda</option>';
@@ -142,8 +147,39 @@
         catOptions += '<option value="' + c.id + '"' + sel + '>' + c.nombre + '</option>';
       }
 
+      var tempImageData = isImagen;
+      var uid = 'img-' + Date.now();
+      window.__imgUpload = function (input) {
+        var file = input.files[0];
+        if (!file) return;
+        if (file.size > 512000) { UI.toast('La imagen no debe exceder 500KB', 'error'); input.value = ''; return; }
+        if (['image/jpeg', 'image/png', 'image/webp'].indexOf(file.type) === -1) {
+          UI.toast('Formato no v\u00e1lido. Usa JPG, PNG o WEBP', 'error'); input.value = ''; return;
+        }
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          tempImageData = e.target.result;
+          var p = document.getElementById(uid);
+          if (p) { p.style.backgroundImage = 'url(' + tempImageData + ')'; p.innerHTML = ''; }
+        };
+        reader.readAsDataURL(file);
+      };
+
       var html =
         '<div class="space-y-4">' +
+        '  <div class="form-control w-full">' +
+        '    <span class="label-text mb-1">Imagen del producto</span>' +
+        '    <div class="flex items-center gap-3">' +
+        '      <div id="' + uid + '" class="w-20 h-20 rounded-lg bg-base-200 flex items-center justify-center text-base-content/30 overflow-hidden"' +
+        '        style="background-size:cover;background-position:center;' + (isImagen ? 'background-image:url(' + isImagen + ')' : '') + '">' +
+        '        ' + (isImagen ? '' : '<i class="bi bi-image text-2xl"></i>') +
+        '      </div>' +
+        '      <div class="flex-1">' +
+        '        <input type="file" accept="image/jpeg,image/png,image/webp" class="file-input file-input-bordered w-full max-w-xs text-sm" onchange="window.__imgUpload(this)" />' +
+        '        <p class="text-xs text-base-content/40 mt-1">M\u00e1ximo 500KB. JPG, PNG, WEBP</p>' +
+        '      </div>' +
+        '    </div>' +
+        '  </div>' +
         '  <label class="form-control w-full">' +
         '    <span class="label-text">Nombre del producto *</span>' +
         '    <input type="text" name="nombre" class="input input-bordered w-full" value="' + this._escAttr(isNombre) + '" required>' +
@@ -182,14 +218,17 @@
             UI.toast('El precio debe ser mayor a 0', 'error');
             return;
           }
+          data.imagen = tempImageData;
           if (editando) {
             await Productos.actualizar(item.id, data);
           } else {
             await Productos.guardar(data);
           }
           await Productos.cargarDatos();
+          delete window.__imgUpload;
         }
       );
+      delete window.__imgUpload;
     },
 
     async guardar(datos) {
@@ -200,7 +239,7 @@
         categoriaId: datos.categoriaId || '',
         precio: parseFloat(datos.precio) || 0,
         stock: parseInt(datos.stock, 10) || 0,
-        imagen: '',
+        imagen: datos.imagen || '',
         createdBy: 'anon',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -225,6 +264,7 @@
         existente.categoriaId = datos.categoriaId || '';
         existente.precio = parseFloat(datos.precio) || 0;
         existente.stock = parseInt(datos.stock, 10) || 0;
+        existente.imagen = datos.imagen || '';
         existente.updatedAt = new Date().toISOString();
         await db.productos.put(existente);
         UI.toast('Producto actualizado', 'success');
