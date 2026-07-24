@@ -75,6 +75,7 @@ window.appRouter = {
 
   navigate(id, params, replace) {
     console.log('[router] navigate(' + id + ') navigatingTo=' + this._navigatingTo + ' current=' + (this._current ? this._current.id : 'null') + ' actual=' + Alpine.store('app').moduloActual);
+    if (id === 'corte' || id === 'devoluciones') console.trace('[router] stack for ' + id);
     params = params || '';
     replace = replace || false;
     var store = Alpine.store('app');
