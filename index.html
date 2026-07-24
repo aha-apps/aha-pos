@@ -140,30 +140,25 @@
     </div>
     <nav class="flex-1 overflow-y-auto p-3 space-y-0.5">
       <a href="#/ventas" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 hover:bg-base-200"
-         :class="{ 'bg-primary/10 text-primary font-semibold shadow-sm': $store.app.moduloActual === 'ventas' }"
-         @click.prevent="window.appRouter?.navigate('ventas'); $store.app.sidebarOpen = false">
+         :class="{ 'bg-primary/10 text-primary font-semibold shadow-sm': $store.app.moduloActual === 'ventas' }">
         <i class="bi bi-cart3 text-lg"></i> Ventas
         <span x-show="$store.badges.ventas" class="ml-auto badge badge-primary badge-sm" x-text="$store.badges.ventas"></span>
       </a>
       <a href="#/productos" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 hover:bg-base-200"
-         :class="{ 'bg-primary/10 text-primary font-semibold shadow-sm': $store.app.moduloActual === 'productos' }"
-         @click.prevent="window.appRouter?.navigate('productos'); $store.app.sidebarOpen = false">
+         :class="{ 'bg-primary/10 text-primary font-semibold shadow-sm': $store.app.moduloActual === 'productos' }">
         <i class="bi bi-box-seam text-lg"></i> Productos
         <span x-show="$store.badges.productos" class="ml-auto badge badge-primary badge-sm" x-text="$store.badges.productos"></span>
       </a>
       <a href="#/corte" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 hover:bg-base-200"
-         :class="{ 'bg-primary/10 text-primary font-semibold shadow-sm': $store.app.moduloActual === 'corte' }"
-         @click.prevent="window.appRouter?.navigate('corte'); $store.app.sidebarOpen = false">
+         :class="{ 'bg-primary/10 text-primary font-semibold shadow-sm': $store.app.moduloActual === 'corte' }">
         <i class="bi bi-cash-stack text-lg"></i> Corte
       </a>
       <a href="#/devoluciones" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 hover:bg-base-200"
-         :class="{ 'bg-primary/10 text-primary font-semibold shadow-sm': $store.app.moduloActual === 'devoluciones' }"
-         @click.prevent="window.appRouter?.navigate('devoluciones'); $store.app.sidebarOpen = false">
+         :class="{ 'bg-primary/10 text-primary font-semibold shadow-sm': $store.app.moduloActual === 'devoluciones' }">
         <i class="bi bi-arrow-return-left text-lg"></i> Devoluciones
       </a>
       <a href="#/reportes" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 hover:bg-base-200"
-         :class="{ 'bg-primary/10 text-primary font-semibold shadow-sm': $store.app.moduloActual === 'reportes' }"
-         @click.prevent="window.appRouter?.navigate('reportes'); $store.app.sidebarOpen = false">
+         :class="{ 'bg-primary/10 text-primary font-semibold shadow-sm': $store.app.moduloActual === 'reportes' }">
         <i class="bi bi-bar-chart-line text-lg"></i> Reportes
       </a>
     </nav>
@@ -225,21 +220,21 @@
 
   <!-- Bottom Nav (mobile) -->
   <nav class="bottom-nav" id="bottom-nav">
-    <button class="bottom-nav-item" :class="{ 'active': $store.app.moduloActual === 'ventas' }" @click="window.appRouter?.navigate('ventas')">
+    <a href="#/ventas" class="bottom-nav-item" :class="{ 'active': $store.app.moduloActual === 'ventas' }">
       <i class="bi bi-cart3"></i> Ventas
-    </button>
-    <button class="bottom-nav-item" :class="{ 'active': $store.app.moduloActual === 'productos' }" @click="window.appRouter?.navigate('productos')">
+    </a>
+    <a href="#/productos" class="bottom-nav-item" :class="{ 'active': $store.app.moduloActual === 'productos' }">
       <i class="bi bi-box-seam"></i> Productos
-    </button>
-    <button class="bottom-nav-item" :class="{ 'active': $store.app.moduloActual === 'corte' }" @click="window.appRouter?.navigate('corte')">
+    </a>
+    <a href="#/corte" class="bottom-nav-item" :class="{ 'active': $store.app.moduloActual === 'corte' }">
       <i class="bi bi-cash-stack"></i> Corte
-    </button>
-    <button class="bottom-nav-item" :class="{ 'active': $store.app.moduloActual === 'devoluciones' }" @click="window.appRouter?.navigate('devoluciones')">
+    </a>
+    <a href="#/devoluciones" class="bottom-nav-item" :class="{ 'active': $store.app.moduloActual === 'devoluciones' }">
       <i class="bi bi-arrow-return-left"></i> Devol.
-    </button>
-    <button class="bottom-nav-item" :class="{ 'active': $store.app.moduloActual === 'reportes' }" @click="window.appRouter?.navigate('reportes')">
+    </a>
+    <a href="#/reportes" class="bottom-nav-item" :class="{ 'active': $store.app.moduloActual === 'reportes' }">
       <i class="bi bi-bar-chart-line"></i> Reportes
-    </button>
+    </a>
   </nav>
 
   <!-- Toast Container -->
