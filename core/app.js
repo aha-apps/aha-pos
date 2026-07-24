@@ -6,18 +6,26 @@ window.appRouter = {
   // Helper: inject HTML into module-content and initialize Alpine on new nodes.
   // MutationObserver is paused and old tree destroyed to prevent double-init.
   refreshContent: function (html) {
-    var el = document.getElementById('module-content');
-    if (!el) return;
-    var alpineReady = typeof Alpine !== 'undefined';
-    if (alpineReady) {
-      Alpine.stopObservingMutations();
-      Alpine.destroyTree(el);
+    var oldEl = document.getElementById('module-content');
+    if (!oldEl) return;
+    var parent = oldEl.parentNode;
+    if (!parent) return;
+
+    // 1. Destroy old Alpine bindings so elementData WeakMap is cleaned up
+    if (typeof Alpine !== 'undefined' && Alpine.destroyTree) {
+      Alpine.destroyTree(oldEl);
     }
-    el.innerHTML = html;
-    if (alpineReady) {
-      Alpine.initTree(el);
-      Alpine.startObservingMutations();
-    }
+
+    // 2. Create a brand new container element with fresh DOM nodes
+    var newEl = document.createElement('div');
+    newEl.id = 'module-content';
+    newEl.innerHTML = html;
+
+    // 3. Replace old with new — Alpine's MutationObserver will auto-init
+    //    because the observer is active and sees the DOM replacement.
+    //    Since newEl is never in elementData WeakMap, initTree will not
+    //    attempt to redefine $nextTick.
+    parent.replaceChild(newEl, oldEl);
   },
 
   init() {
@@ -45,9 +53,10 @@ window.appRouter = {
   },
 
   _onHashChange() {
-    var hash = location.hash.slice(1) || '';
+    var hash = location.hash.slice(1).replace(/^\//, '') || '';
     var parts = hash.split('/');
     var moduleId = parts[0] || '';
+    console.log('[router] _onHashChange hash="' + location.hash.slice(1) + '" moduleId="' + moduleId + '"');
     var params = parts.slice(1).join('/');
     if (moduleId && this._modules[moduleId]) {
       this.navigate(moduleId, params, true);
@@ -65,20 +74,26 @@ window.appRouter = {
   },
 
   navigate(id, params, replace) {
+    console.log('[router] navigate(' + id + ') navigatingTo=' + this._navigatingTo + ' current=' + (this._current ? this._current.id : 'null') + ' actual=' + Alpine.store('app').moduloActual);
     params = params || '';
     replace = replace || false;
     var store = Alpine.store('app');
     // Skip if already showing this module (prevents hashchange loop)
     if (this._current && this._current.id === id && store.moduloActual === id) {
+      console.log('[router] guard: already showing ' + id);
       Alpine.store('loading').visible = false;
       return;
     }
     // Prevent re-entrance while async render is in progress
     if (this._navigatingTo) {
-      if (this._navigatingTo === id) return; // already navigating to this module
+      if (this._navigatingTo === id) {
+        console.log('[router] guard: already navigating to ' + id);
+        return;
+      }
       // Queue navigation to a different module
       var self = this;
       this._pendingNav = { id: id, params: params, replace: replace };
+      console.log('[router] queued navigation to ' + id + ' (currently navigating to ' + this._navigatingTo + ')');
       return;
     }
     var self = this;
@@ -100,6 +115,7 @@ window.appRouter = {
       var renderResult = null;
       if (typeof mod.render === 'function') renderResult = mod.render(params);
       var done = function (html) {
+        console.log('[router] done(' + id + ') navigated=' + store.moduloActual);
         self._navigatingTo = null;
         if (typeof html === 'string') self.refreshContent(html);
         self._current = mod;
