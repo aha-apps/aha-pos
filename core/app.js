@@ -79,6 +79,7 @@ window.appRouter = {
   _onHashChange() {
     // Debounce: ignorar hashchange si ocurrio hace menos de 300ms (frena cascade)
     var now = Date.now();
+    console.log('[router] _onHashChange debounce: last=' + this._lastHashChange + ' diff=' + (this._lastHashChange ? (now - this._lastHashChange) : 'N/A') + 'ms this=' + (typeof this));
     if (this._lastHashChange && (now - this._lastHashChange) < 300) {
       console.log('[router] _onHashChange IGNORADO por debounce (last=' + (now - this._lastHashChange) + 'ms)');
       return;
