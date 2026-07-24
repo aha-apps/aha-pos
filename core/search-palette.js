@@ -99,7 +99,7 @@ document.addEventListener('alpine:init', function () {
         if (!item || item.type === 'separator') return;
         this.closePalette();
         if (item.type === 'module' && window.appRouter) {
-          appRouter.navigate(item.id);
+          appRouter.navigate(item.id, '', true);
         } else if (item.type === 'record' && item.id) {
           var current = appRouter.getCurrent();
           if (current && typeof current.verDetalle === 'function') {

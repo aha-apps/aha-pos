@@ -1,3 +1,9 @@
+// WRAPPER: todo seteo de hash pasa por aca para trace
+var _setHash = function(h) {
+  console.trace('[router] ⚡ _setHash("' + h + '")');
+  location.hash = h;
+};
+
 window.appRouter = {
   _current: null,
   _modules: {},
@@ -40,7 +46,10 @@ window.appRouter = {
       Alpine.store('ui').online = false;
     });
 
-    window.addEventListener('hashchange', function () { self._onHashChange(); });
+    window.addEventListener('hashchange', function (e) {
+      console.log('[router] hashchange oldHash="' + (e.oldURL ? e.oldURL.split('#')[1] || '' : '?') + '" newHash="' + (e.newURL ? e.newURL.split('#')[1] || '' : '?') + '"');
+      self._onHashChange();
+    });
 
     if (!location.hash || location.hash === '#') {
       var mods = Alpine.store('app').modulos;
@@ -127,7 +136,7 @@ window.appRouter = {
         if (typeof html === 'string') self.refreshContent(html);
         self._current = mod;
         store.moduloActual = id;
-        if (!replace) location.hash = id + (params ? '/' + params : '');
+        if (!replace) _setHash(id + (params ? '/' + params : ''));
         Alpine.store('loading').visible = false;
         // Process queued navigation
         if (self._pendingNav) {
