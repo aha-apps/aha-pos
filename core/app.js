@@ -53,11 +53,17 @@ window.appRouter = {
   },
 
   _onHashChange() {
+    console.trace('[router] _onHashChange hash="' + location.hash.slice(1) + '"');
+    // Si ya hay una navegacion en curso, ignorar (evita cascade de hashchange)
+    if (this._navigatingTo) {
+      console.log('[router]  -> ignorado, navegando a ' + this._navigatingTo);
+      return;
+    }
     Alpine.store('app').sidebarOpen = false;
     var hash = location.hash.slice(1).replace(/^\//, '') || '';
     var parts = hash.split('/');
     var moduleId = parts[0] || '';
-    console.log('[router] _onHashChange hash="' + location.hash.slice(1) + '" moduleId="' + moduleId + '"');
+    console.log('[router]   -> procesando moduleId="' + moduleId + '"');
     var params = parts.slice(1).join('/');
     if (moduleId && this._modules[moduleId]) {
       this.navigate(moduleId, params, true);

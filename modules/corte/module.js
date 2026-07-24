@@ -154,8 +154,10 @@
     },
 
     async _guardarCorteDb(corte) {
-      corte.updatedAt = new Date();
-      await db.cortes.put(corte);
+      // Deep-clone para remover proxies de Alpine (no clonables por IndexedDB)
+      var plain = JSON.parse(JSON.stringify(corte));
+      plain.updatedAt = new Date();
+      await db.cortes.put(plain);
     },
 
     async _guardarGastoDb(gasto) {
